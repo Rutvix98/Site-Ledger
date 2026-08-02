@@ -1,0 +1,2119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>SiteLedger — Construction &amp; Shop Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ============ THEME TOKENS ============ */
+:root{
+  --font-display:'Sora',sans-serif; --font-body:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace;
+  --radius-sm:8px; --radius-md:12px; --radius-lg:18px; --radius-xl:22px;
+  --shadow-sm:0 1px 2px rgba(20,16,10,.06);
+  --shadow-md:0 6px 20px -6px rgba(20,16,10,.18);
+  --shadow-lg:0 18px 46px -14px rgba(20,16,10,.30);
+  --sidebar-w:236px; --sidebar-w-collapsed:76px;
+}
+[data-theme="construction-orange"]{
+  --bg:#15130f; --surface:#1c1a15; --surface-2:#23201a; --surface-raised:#28241d; --border:#33301e40;
+  --border-solid:#38332a; --ink:#f3efe6; --ink-muted:#b6ac97; --ink-faint:#7a7261;
+  --accent:#ef7d1a; --accent-ink:#1a1208; --accent-hover:#ff8f2e; --accent-soft:rgba(239,125,26,.15);
+  --success:#4fb56a; --success-soft:rgba(79,181,106,.15); --warning:#e0a72b; --warning-soft:rgba(224,167,43,.16);
+  --danger:#e5595a; --danger-soft:rgba(229,89,90,.15); --info:#4f9fd6; --info-soft:rgba(79,159,214,.15);
+  --stripe-a:#ef7d1a; --stripe-b:#1c1a15;
+}
+[data-theme="dark"]{
+  --bg:#111317; --surface:#181b20; --surface-2:#1e2127; --surface-raised:#22262d; --border:#2a2e3640;
+  --border-solid:#2c3038; --ink:#eef0f3; --ink-muted:#9aa2b0; --ink-faint:#5c6270;
+  --accent:#6c8cff; --accent-ink:#0c1020; --accent-hover:#8199ff; --accent-soft:rgba(108,140,255,.16);
+  --success:#3fbb78; --success-soft:rgba(63,187,120,.15); --warning:#e0a72b; --warning-soft:rgba(224,167,43,.16);
+  --danger:#ef5a5a; --danger-soft:rgba(239,90,90,.15); --info:#4fb2e0; --info-soft:rgba(79,178,224,.15);
+  --stripe-a:#6c8cff; --stripe-b:#181b20;
+}
+[data-theme="light"]{
+  --bg:#f4f2ec; --surface:#ffffff; --surface-2:#faf8f3; --surface-raised:#ffffff; --border:#e5e0d3;
+  --border-solid:#e5e0d3; --ink:#211d15; --ink-muted:#716a58; --ink-faint:#a49c88;
+  --accent:#c2660a; --accent-ink:#fff7ef; --accent-hover:#a8560a; --accent-soft:rgba(194,102,10,.1);
+  --success:#1f8a4c; --success-soft:rgba(31,138,76,.1); --warning:#b5790f; --warning-soft:rgba(181,121,15,.12);
+  --danger:#c13f3f; --danger-soft:rgba(193,63,63,.1); --info:#1f6fa8; --info-soft:rgba(31,111,168,.1);
+  --stripe-a:#c2660a; --stripe-b:#ffffff; --shadow-md:0 6px 20px -8px rgba(60,50,20,.14); --shadow-lg:0 18px 40px -14px rgba(60,50,20,.20);
+}
+[data-theme="forest-green"]{
+  --bg:#0e1410; --surface:#141b15; --surface-2:#19221a; --surface-raised:#1d271e; --border:#26301f60;
+  --border-solid:#293323; --ink:#e9efe6; --ink-muted:#9bb090; --ink-faint:#5c6b52;
+  --accent:#54a866; --accent-ink:#08130a; --accent-hover:#67c17a; --accent-soft:rgba(84,168,102,.16);
+  --success:#54a866; --success-soft:rgba(84,168,102,.15); --warning:#d3a13a; --warning-soft:rgba(211,161,58,.15);
+  --danger:#d1615c; --danger-soft:rgba(209,97,92,.15); --info:#4fa3a8; --info-soft:rgba(79,163,168,.15);
+  --stripe-a:#54a866; --stripe-b:#141b15;
+}
+[data-theme="slate-blue"]{
+  --bg:#171b23; --surface:#1d222c; --surface-2:#232935; --surface-raised:#282f3c; --border:#333c4d60;
+  --border-solid:#333c4d; --ink:#e8ebf1; --ink-muted:#9aa5ba; --ink-faint:#5c6579;
+  --accent:#7d8fce; --accent-ink:#0f1220; --accent-hover:#93a3db; --accent-soft:rgba(125,143,206,.16);
+  --success:#4fae7c; --success-soft:rgba(79,174,124,.15); --warning:#d1a23f; --warning-soft:rgba(209,162,63,.15);
+  --danger:#d16a68; --danger-soft:rgba(209,106,104,.15); --info:#6fa8d1; --info-soft:rgba(111,168,209,.15);
+  --stripe-a:#7d8fce; --stripe-b:#1d222c;
+}
+[data-theme="midnight"]{
+  --bg:#070a12; --surface:#0c1120; --surface-2:#101729; --surface-raised:#131b30; --border:#1c2740a0;
+  --border-solid:#1c2740; --ink:#e6eaf5; --ink-muted:#8994b3; --ink-faint:#4c5674;
+  --accent:#5c7cfa; --accent-ink:#060916; --accent-hover:#7891fb; --accent-soft:rgba(92,124,250,.18);
+  --success:#3fb480; --success-soft:rgba(63,180,128,.15); --warning:#dba635; --warning-soft:rgba(219,166,53,.15);
+  --danger:#ea5c68; --danger-soft:rgba(234,92,104,.15); --info:#4ea3e0; --info-soft:rgba(78,163,224,.15);
+  --stripe-a:#5c7cfa; --stripe-b:#0c1120;
+}
+
+/* ============ RESET & BASE ============ */
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased; transition:background .2s ease,color .2s ease;
+}
+.mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+h1,h2,h3,h4{font-family:var(--font-display); margin:0; letter-spacing:-.01em;}
+a{color:inherit;}
+button{font-family:inherit;}
+::selection{background:var(--accent-soft);}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-thumb{background:var(--border-solid); border-radius:20px;}
+::-webkit-scrollbar-track{background:transparent;}
+*:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important; transition-duration:.001ms !important;}}
+
+/* ============ SPLASH ============ */
+.splash{position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:999; flex-direction:column; gap:16px; transition:opacity .4s ease, visibility .4s ease;}
+.splash.hide{opacity:0; visibility:hidden; pointer-events:none;}
+.splash-logo{width:64px; height:64px; animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1); opacity:1;} 50%{transform:scale(1.08); opacity:.75;}}
+.splash-text{font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--ink-muted); letter-spacing:.02em;}
+
+/* ============ APP SHELL ============ */
+.app{display:flex; height:100vh; overflow:hidden;}
+.sidebar{
+  width:var(--sidebar-w); flex-shrink:0; background:var(--surface); border-right:1px solid var(--border-solid);
+  display:flex; flex-direction:column; transition:width .22s ease; position:relative; z-index:20;
+}
+.sidebar.collapsed{width:var(--sidebar-w-collapsed);}
+.brand-row{display:flex; align-items:center; gap:11px; padding:18px 16px; border-bottom:1px solid var(--border);}
+.logo-badge{width:38px; height:38px; flex-shrink:0; border-radius:11px; overflow:hidden; box-shadow:var(--shadow-sm);}
+.brand-text{overflow:hidden; white-space:nowrap; opacity:1; transition:opacity .15s ease;}
+.sidebar.collapsed .brand-text{opacity:0; width:0;}
+.brand-app{font-family:var(--font-display); font-weight:800; font-size:14.5px; letter-spacing:-.01em;}
+.brand-owner{font-size:11px; color:var(--ink-muted); margin-top:1px;}
+.editable{cursor:text; border-radius:4px; padding:0 3px; margin:0 -3px; outline:1px solid transparent;}
+.editable:hover{background:var(--surface-2);}
+.editable:focus{outline:1px solid var(--accent); background:var(--surface-2);}
+
+.collapse-btn{
+  position:absolute; top:22px; right:-12px; width:24px; height:24px; border-radius:50%; background:var(--surface-raised);
+  border:1px solid var(--border-solid); color:var(--ink-muted); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:var(--shadow-sm); z-index:5; transition:transform .2s ease, color .15s;
+}
+.collapse-btn:hover{color:var(--accent);}
+.sidebar.collapsed .collapse-btn svg{transform:rotate(180deg);}
+
+.nav{flex:1; overflow-y:auto; padding:12px 10px; display:flex; flex-direction:column; gap:2px;}
+.nav-item{
+  display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; cursor:pointer;
+  color:var(--ink-muted); font-size:13.5px; font-weight:600; transition:background .15s,color .15s; white-space:nowrap; overflow:hidden;
+  position:relative;
+}
+.nav-item svg{flex-shrink:0; width:18px; height:18px;}
+.nav-item:hover{background:var(--surface-2); color:var(--ink);}
+.nav-item.active{background:var(--accent-soft); color:var(--accent);}
+.sidebar.collapsed .nav-item{justify-content:center; padding:11px;}
+.sidebar.collapsed .nav-item span.label{display:none;}
+.nav-item .badge{margin-left:auto; background:var(--danger); color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:20px;}
+.sidebar.collapsed .nav-item .badge{display:none;}
+
+.sidebar-foot{padding:14px 16px; border-top:1px solid var(--border); font-size:10.5px; color:var(--ink-faint); white-space:nowrap; overflow:hidden;}
+.sidebar.collapsed .sidebar-foot{opacity:0;}
+
+.main{flex:1; min-width:0; display:flex; flex-direction:column; height:100vh; overflow:hidden;}
+.topbar{
+  display:flex; align-items:center; gap:14px; padding:14px 26px; border-bottom:1px solid var(--border-solid);
+  background:var(--bg); flex-shrink:0;
+}
+.hamburger{display:none; width:36px; height:36px; border-radius:9px; border:1px solid var(--border-solid); background:var(--surface); align-items:center; justify-content:center; cursor:pointer; color:var(--ink); flex-shrink:0;}
+.search-wrap{flex:1; max-width:420px; position:relative;}
+.search-wrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-faint); width:16px; height:16px;}
+.search{
+  width:100%; padding:9px 14px 9px 36px; border-radius:10px; border:1px solid var(--border-solid); background:var(--surface);
+  color:var(--ink); font-size:13.5px; transition:border-color .15s, box-shadow .15s;
+}
+.search:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); outline:none;}
+.search-results{position:absolute; top:calc(100% + 8px); left:0; right:0; background:var(--surface-raised); border:1px solid var(--border-solid); border-radius:12px; box-shadow:var(--shadow-lg); max-height:380px; overflow-y:auto; z-index:60; display:none;}
+.search-results.show{display:block;}
+.sr-group-label{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); padding:10px 14px 4px;}
+.sr-item{display:flex; align-items:center; gap:10px; padding:9px 14px; cursor:pointer; font-size:13px;}
+.sr-item:hover{background:var(--surface-2);}
+.sr-empty{padding:22px; text-align:center; color:var(--ink-faint); font-size:13px;}
+
+.topbar-right{display:flex; align-items:center; gap:10px; margin-left:auto;}
+.theme-picker{display:flex; gap:6px; padding:4px; background:var(--surface); border:1px solid var(--border-solid); border-radius:12px;}
+.theme-dot{width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:transform .12s, border-color .15s; flex-shrink:0;}
+.theme-dot:hover{transform:scale(1.12);}
+.theme-dot.active{border-color:var(--ink);}
+.icon-btn{width:36px; height:36px; border-radius:10px; border:1px solid var(--border-solid); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-muted); transition:color .15s, background .15s;}
+.icon-btn:hover{color:var(--accent); background:var(--surface-2);}
+
+.content{flex:1; overflow-y:auto; padding:24px 26px 90px;}
+.page-head{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap;}
+.page-title{font-size:21px; font-weight:800;}
+.page-sub{font-size:12.5px; color:var(--ink-muted); margin-top:3px;}
+
+/* ============ BUTTONS ============ */
+.btn{
+  display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:10px; border:1px solid transparent;
+  font-size:13px; font-weight:700; cursor:pointer; transition:transform .1s ease, filter .15s, background .15s, box-shadow .15s;
+  white-space:nowrap; font-family:var(--font-body);
+}
+.btn:active{transform:scale(.97);}
+.btn svg{width:15px; height:15px; flex-shrink:0;}
+.btn-primary{background:var(--accent); color:var(--accent-ink); box-shadow:0 4px 14px -4px var(--accent-soft);}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-ghost{background:var(--surface); color:var(--ink); border-color:var(--border-solid);}
+.btn-ghost:hover{background:var(--surface-2);}
+.btn-danger{background:var(--danger-soft); color:var(--danger);}
+.btn-danger:hover{filter:brightness(1.12);}
+.btn-sm{padding:6px 11px; font-size:12px; border-radius:8px;}
+.btn-block{width:100%; justify-content:center;}
+.btn-icon{padding:8px; border-radius:9px;}
+
+/* ============ STAT CARDS ============ */
+.stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px;}
+.stat-card{
+  background:var(--surface); border:1px solid var(--border-solid); border-radius:var(--radius-lg); padding:18px;
+  box-shadow:var(--shadow-sm); transition:transform .15s ease, box-shadow .15s ease; position:relative; overflow:hidden;
+}
+.stat-card:hover{transform:translateY(-2px); box-shadow:var(--shadow-md);}
+.stat-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+.stat-icon{width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;}
+.stat-icon svg{width:17px; height:17px;}
+.stat-val{font-family:var(--font-display); font-size:23px; font-weight:800; line-height:1;}
+.stat-label{font-size:12px; color:var(--ink-muted); margin-top:6px; font-weight:600;}
+.stat-trend{font-size:11px; font-weight:700; padding:2px 7px; border-radius:20px;}
+.trend-up{color:var(--success); background:var(--success-soft);}
+.trend-down{color:var(--danger); background:var(--danger-soft);}
+.trend-flat{color:var(--ink-faint); background:var(--surface-2);}
+
+.dash-grid{display:grid; grid-template-columns:1.5fr 1fr; gap:16px;}
+@media (max-width:1080px){.dash-grid{grid-template-columns:1fr;}}
+
+/* ============ CARDS / PANELS ============ */
+.panel{background:var(--surface); border:1px solid var(--border-solid); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);}
+.panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.panel-title{font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px;}
+.panel-title svg{width:16px; height:16px; color:var(--accent);}
+
+.activity-row{display:flex; gap:11px; padding:10px 0; border-bottom:1px solid var(--border);}
+.activity-row:last-child{border-bottom:none; padding-bottom:0;}
+.activity-dot{width:8px; height:8px; border-radius:50%; background:var(--accent); margin-top:5px; flex-shrink:0;}
+.activity-text{font-size:12.5px; line-height:1.5;}
+.activity-time{font-size:10.5px; color:var(--ink-faint); margin-top:1px;}
+
+/* ============ TOOLBAR / FILTERS ============ */
+.toolbar{display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
+.chip{padding:7px 14px; border-radius:20px; background:var(--surface); border:1px solid var(--border-solid); font-size:12.5px; font-weight:600; cursor:pointer; color:var(--ink-muted); transition:all .15s; white-space:nowrap;}
+.chip:hover{color:var(--ink);}
+.chip.active{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+.seg-toggle{display:flex; border:1px solid var(--border-solid); border-radius:var(--radius-md); overflow:hidden;}
+.seg-opt{flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px 8px; font-size:13px; font-weight:700; cursor:pointer; color:var(--ink-muted); background:var(--surface); transition:all .15s;}
+.seg-opt svg{width:15px; height:15px;}
+.seg-opt+.seg-opt{border-left:1px solid var(--border-solid);}
+.seg-opt.active{background:var(--success-soft); color:var(--success);}
+.seg-opt.active svg{color:var(--success);}
+.seg-toggle .seg-opt[data-val="unpaid"].active{background:var(--danger-soft); color:var(--danger);}
+.input,.select,.textarea{
+  width:100%; padding:9px 13px; border-radius:9px; border:1px solid var(--border-solid); background:var(--surface);
+  color:var(--ink); font-size:13px; font-family:inherit; transition:border-color .15s, box-shadow .15s;
+}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); outline:none;}
+.textarea{resize:vertical; min-height:64px;}
+.form-field{display:flex; flex-direction:column; gap:5px; margin-bottom:13px;}
+.form-field span{font-size:11.5px; font-weight:700; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.03em;}
+.form-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.form-row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;}
+@media(max-width:520px){.form-row,.form-row3{grid-template-columns:1fr;}}
+
+/* ============ GRID OF ENTITY CARDS ============ */
+.card-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px;}
+.entity-card{
+  background:var(--surface); border:1px solid var(--border-solid); border-radius:var(--radius-lg); padding:16px; cursor:pointer;
+  box-shadow:var(--shadow-sm); transition:transform .15s, box-shadow .15s; display:flex; flex-direction:column; gap:10px; position:relative;
+}
+.entity-card:hover{transform:translateY(-3px); box-shadow:var(--shadow-md); border-color:var(--accent);}
+.product-thumb{width:100%; height:110px; border-radius:10px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; overflow:hidden; color:var(--ink-faint);}
+.product-thumb img{width:100%; height:100%; object-fit:cover;}
+.entity-title{font-weight:700; font-size:13.5px;}
+.entity-sub{font-size:11.5px; color:var(--ink-muted);}
+.tag{display:inline-flex; align-items:center; padding:2px 9px; border-radius:20px; font-size:10.5px; font-weight:700; background:var(--surface-2); color:var(--ink-muted); width:fit-content;}
+.tag-accent{background:var(--accent-soft); color:var(--accent);}
+.tag-danger{background:var(--danger-soft); color:var(--danger);}
+.tag-success{background:var(--success-soft); color:var(--success);}
+.tag-warn{background:var(--warning-soft); color:var(--warning);}
+.card-price-row{display:flex; align-items:center; justify-content:space-between; margin-top:2px;}
+.card-price{font-family:var(--font-mono); font-weight:700; font-size:14px;}
+.stock-pill{font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px;}
+
+/* ============ PROGRESS ============ */
+.progress-track{width:100%; height:9px; border-radius:20px; background:var(--surface-2); overflow:hidden;}
+.progress-fill{height:100%; border-radius:20px; background:linear-gradient(90deg,var(--accent),var(--accent-hover)); transition:width .5s ease;}
+
+/* ============ TABLES (compact, non-boring) ============ */
+.tbl{width:100%; border-collapse:collapse; font-size:12.5px;}
+.tbl th{text-align:left; padding:9px 12px; color:var(--ink-faint); font-weight:700; text-transform:uppercase; font-size:10.5px; letter-spacing:.04em; border-bottom:1px solid var(--border-solid);}
+.tbl td{padding:11px 12px; border-bottom:1px solid var(--border);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:var(--surface-2);}
+
+/* ============ EMPTY STATE ============ */
+.empty-state{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:56px 20px; color:var(--ink-muted);}
+.empty-state svg{width:52px; height:52px; color:var(--ink-faint); margin-bottom:14px;}
+.empty-state h3{font-size:15px; margin-bottom:5px; color:var(--ink);}
+.empty-state p{font-size:12.5px; max-width:320px; margin:0 0 16px;}
+
+/* ============ MODAL ============ */
+.modal-backdrop{position:fixed; inset:0; background:rgba(10,8,4,.55); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; z-index:200; opacity:0; visibility:hidden; transition:opacity .2s ease, visibility .2s ease; padding:20px;}
+.modal-backdrop.show{opacity:1; visibility:visible;}
+.modal{background:var(--surface-raised); border:1px solid var(--border-solid); border-radius:var(--radius-lg); width:100%; max-width:560px; max-height:88vh; overflow-y:auto; box-shadow:var(--shadow-lg); transform:translateY(14px) scale(.98); transition:transform .22s cubic-bezier(.2,.9,.3,1.2);}
+.modal-backdrop.show .modal{transform:translateY(0) scale(1);}
+.modal.wide{max-width:760px;}
+.modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border);}
+.modal-title{font-size:15.5px; font-weight:800;}
+.modal-body{padding:20px;}
+.modal-foot{display:flex; justify-content:flex-end; gap:9px; padding:16px 20px; border-top:1px solid var(--border);}
+.close-x{width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-muted); background:transparent; border:none;}
+.close-x:hover{background:var(--surface-2); color:var(--ink);}
+
+.confirm-icon{width:48px; height:48px; border-radius:50%; background:var(--danger-soft); color:var(--danger); display:flex; align-items:center; justify-content:center; margin:0 auto 14px;}
+
+.photo-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:8px; margin-top:8px;}
+.photo-thumb{position:relative; aspect-ratio:1; border-radius:9px; overflow:hidden; background:var(--surface-2); cursor:pointer;}
+.photo-thumb img{width:100%; height:100%; object-fit:cover;}
+.photo-thumb .rm{position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%; background:rgba(0,0,0,.6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; cursor:pointer;}
+.photo-add{aspect-ratio:1; border-radius:9px; border:1.5px dashed var(--border-solid); display:flex; align-items:center; justify-content:center; color:var(--ink-faint); cursor:pointer; flex-direction:column; gap:2px; font-size:10px;}
+.photo-add:hover{border-color:var(--accent); color:var(--accent);}
+#logPhotoGrid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+.photo-thumb-desc .photo-thumb{aspect-ratio:4/3;}
+.lightbox-img{width:100%; border-radius:10px; max-height:60vh; object-fit:contain; background:var(--surface-2);}
+
+/* ============ LEDGER LIST ============ */
+.list-row{display:flex; align-items:center; gap:11px; padding:11px 0; border-bottom:1px solid var(--border);}
+.list-row:last-child{border-bottom:none;}
+.list-avatar{width:34px; height:34px; border-radius:9px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; flex-shrink:0;}
+
+/* ============ FAB (mobile) ============ */
+.fab{display:none; position:fixed; bottom:24px; right:20px; width:56px; height:56px; border-radius:50%; background:var(--accent); color:var(--accent-ink); align-items:center; justify-content:center; box-shadow:0 10px 26px -6px rgba(0,0,0,.4); border:none; cursor:pointer; z-index:60;}
+.fab svg{width:24px; height:24px;}
+
+/* ============ TOAST ============ */
+.toast-wrap{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:300; display:flex; flex-direction:column; gap:8px; align-items:center;}
+.toast{background:var(--surface-raised); border:1px solid var(--border-solid); color:var(--ink); padding:11px 18px; border-radius:11px; font-size:12.5px; font-weight:600; box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:9px; animation:toastIn .25s ease;}
+.toast svg{width:15px; height:15px; color:var(--success); flex-shrink:0;}
+@keyframes toastIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+
+/* ============ CHARTS ============ */
+.chart-wrap{width:100%; overflow-x:auto;}
+canvas.chart-canvas{width:100%; display:block;}
+.legend-row{display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--ink-muted); margin-top:8px; flex-wrap:wrap;}
+.legend-dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+.rank-row{display:flex; align-items:center; gap:10px; padding:8px 0;}
+.rank-num{width:20px; height:20px; border-radius:6px; background:var(--surface-2); color:var(--ink-muted); font-size:10.5px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.rank-bar-track{flex:1; height:6px; border-radius:20px; background:var(--surface-2); overflow:hidden;}
+.rank-bar-fill{height:100%; background:var(--accent); border-radius:20px;}
+
+/* ============ SETTINGS ============ */
+.settings-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:10px; max-width:520px;}
+.theme-tile{border-radius:12px; padding:12px 10px; border:2px solid var(--border-solid); cursor:pointer; text-align:center; font-size:10.5px; font-weight:700; transition:border-color .15s;}
+.theme-tile.active{border-color:var(--accent);}
+.theme-tile-swatch{width:100%; height:36px; border-radius:8px; margin-bottom:8px;}
+
+/* ============ INVOICE ============ */
+.invoice-sheet{background:#fff; color:#161616; border-radius:12px; padding:28px; font-family:var(--font-body);}
+.invoice-sheet .inv-head{display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #161616; padding-bottom:14px; margin-bottom:16px;}
+.invoice-sheet table{width:100%; border-collapse:collapse; font-size:12.5px; margin-top:10px;}
+.invoice-sheet th{text-align:left; border-bottom:1.5px solid #161616; padding:7px 4px; font-size:10.5px; text-transform:uppercase;}
+.invoice-sheet td{padding:8px 4px; border-bottom:1px solid #ddd;}
+
+/* ============ RESPONSIVE ============ */
+.overlay-scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:19;}
+@media (max-width:900px){
+  .sidebar{position:fixed; inset:0 auto 0 0; transform:translateX(-100%); width:250px !important; box-shadow:var(--shadow-lg);}
+  .sidebar.mobile-open{transform:translateX(0);}
+  .sidebar.mobile-open ~ .overlay-scrim{display:block;}
+  .sidebar .brand-text{opacity:1 !important; width:auto !important;}
+  .sidebar .nav-item span.label{display:inline !important;}
+  .sidebar.collapsed{width:250px;}
+  .collapse-btn{display:none;}
+  .hamburger{display:flex;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .search-wrap{max-width:none;}
+  .content{padding:16px 14px 100px;}
+  .fab{display:flex;}
+  .topbar{padding:12px 14px;}
+  .modal{max-width:calc(100vw - 24px);}
+  .form-row,.form-row3{grid-template-columns:1fr;}
+}
+@media (max-width:520px){.stat-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body data-theme="construction-orange">
+
+<div class="splash" id="splash">
+  <svg class="splash-logo" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="13" fill="#ef7d1a"/><path d="M12 32V20l12-8 12 8v12" stroke="#1a1208" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 32v-9h12v9" stroke="#1a1208" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div class="splash-text">SiteLedger</div>
+</div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <button class="collapse-btn" id="collapseBtn" title="Collapse sidebar" aria-label="Collapse sidebar">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="brand-row">
+      <div class="logo-badge" id="logoBadge"></div>
+      <div class="brand-text">
+        <div class="brand-app">Site<span style="color:var(--accent)">Ledger</span></div>
+        <div class="brand-owner editable" id="ownerNameEl" contenteditable="true" spellcheck="false" title="Click to edit owner name"></div>
+        <div class="brand-owner editable" id="shopNameEl" contenteditable="true" spellcheck="false" title="Click to edit shop name" style="opacity:.75"></div>
+      </div>
+    </div>
+    <nav class="nav" id="navList"></nav>
+    <div class="sidebar-foot">SiteLedger v2 · Offline &amp; local</div>
+  </aside>
+  <div class="overlay-scrim" id="scrim"></div>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input class="search" id="searchInput" placeholder="Search products, customers, sites, workers…" autocomplete="off" />
+        <div class="search-results" id="searchResults"></div>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" id="themeBtn" title="Change theme">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><circle cx="8.5" cy="10.5" r="1.3" fill="currentColor"/><circle cx="12" cy="8" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10.5" r="1.3" fill="currentColor"/><circle cx="10" cy="14.5" r="1.3" fill="currentColor"/><path d="M12 21.5a1.8 1.8 0 010-3.6c1.5 0 2-1.1 1.4-2.3-.5-1-.1-2.1 1-2.4 3-.8 5.1-3.3 5.1-6.7"/></svg>
+        </button>
+        <button class="icon-btn" id="exportBtn" title="Backup data">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<button class="fab" id="fabBtn" aria-label="Add">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+<input type="file" id="restoreFileInput" accept="application/json" style="display:none" />
+
+<script>
+"use strict";
+/* ============================================================
+   SITELEDGER V2 — full local, offline construction & shop app
+   ============================================================ */
+
+const STORE_KEY = "siteledger_v2_state";
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+const todayStr = () => new Date().toISOString().slice(0,10);
+const fmtDate = (d) => { const dt = new Date(d+"T00:00:00"); return dt.toLocaleDateString(undefined,{day:"2-digit",month:"short",year:"numeric"}); };
+const escapeHtml = (s) => String(s??"").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+const DEFAULT_CATEGORIES = {
+  "Construction": ["Cement","Sand","Rods","Bricks","Aggregate"],
+  "Bathroom": ["Sink","Wash Basin","Toilet","Shower","Mirror"],
+  "Plumbing": ["Pipes","Taps","Valves","Fittings"],
+  "Hardware": ["Nails","Tools","Bolts","Locks"],
+  "Electrical": ["Wires","Switches","Fixtures"],
+  "Other": ["General"]
+};
+const DEFAULT_STATE = {
+  settings:{ ownerName:"Vimal Patel", shopName:"Adarsh Enterprise", theme:"construction-orange", currency:"₹" },
+  products:[], customers:[], suppliers:[], sites:[], workers:[], transactions:[], activity:[], invoices:[], invoiceSeq:1000,
+  categories: DEFAULT_CATEGORIES
+};
+
+let state = loadState();
+let tab = "dashboard";
+let searchQuery = "";
+let sidebarCollapsed = false;
+let invCategoryFilter = "All";
+let invoiceFilter = "All";
+let stockFilter = "all";
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return structuredCloneSafe(DEFAULT_STATE);
+    const parsed = JSON.parse(raw);
+    const merged = Object.assign(structuredCloneSafe(DEFAULT_STATE), parsed, {
+      settings: Object.assign({}, DEFAULT_STATE.settings, parsed.settings||{})
+    });
+    if(!merged.categories || Object.keys(merged.categories).length===0) merged.categories = structuredCloneSafe(DEFAULT_CATEGORIES);
+    return merged;
+  }catch(e){ return structuredCloneSafe(DEFAULT_STATE); }
+}
+function structuredCloneSafe(o){ return JSON.parse(JSON.stringify(o)); }
+function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function logActivity(text){
+  state.activity.unshift({date:new Date().toISOString(), text});
+  state.activity = state.activity.slice(0,40);
+}
+function money(n){ return state.settings.currency + " " + Number(n||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function toast(msg, ok=true){
+  const wrap = document.getElementById("toastWrap");
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="${ok?'currentColor':'var(--danger)'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>${escapeHtml(msg)}</span>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity="0"; el.style.transition="opacity .3s"; setTimeout(()=>el.remove(),300); }, 2600);
+}
+
+/* ============== ICONS ============== */
+const ICONS = {
+  dashboard:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>`,
+  inventory:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8L12 3 3 8l9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>`,
+  customers:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"/><circle cx="18" cy="9" r="2.8"/><path d="M15.5 14.3c2.7.4 4.8 2.4 5 5.7"/></svg>`,
+  suppliers:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="7" width="13" height="12" rx="1.5"/><path d="M15.5 11h3.7L21.5 15v4h-6"/><circle cx="6.5" cy="19.5" r="1.6"/><circle cx="17" cy="19.5" r="1.6"/></svg>`,
+  sites:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg>`,
+  workers:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-1a6 6 0 0112 0v1"/><circle cx="10" cy="8" r="4"/><path d="M17.5 21v-1a5 5 0 00-2.3-4.2"/><path d="M14.7 3.3A4 4 0 0117 7a4 4 0 01-2 3.5"/></svg>`,
+  finance:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9.5"/><path d="M12 6.5v11M15.2 9c0-1.4-1.4-2.5-3.2-2.5S8.8 7.6 8.8 9c0 1.4 1.4 2 3.2 2.4 1.8.4 3.2 1.1 3.2 2.6 0 1.4-1.4 2.5-3.2 2.5s-3.2-1.1-3.2-2.5"/></svg>`,
+  analytics:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>`,
+  reports:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg>`,
+  settings:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 000-3l2-1.6-2-3.4-2.4 1a7.7 7.7 0 00-2.6-1.5L14 2h-4l-.4 2.5a7.7 7.7 0 00-2.6 1.5l-2.4-1-2 3.4L4.6 10a7.6 7.6 0 000 3l-2 1.6 2 3.4 2.4-1c.8.6 1.7 1.1 2.6 1.5L10 22h4l.4-2.5c.9-.4 1.8-.9 2.6-1.5l2.4 1 2-3.4-2-1.6z"/></svg>`,
+  plus:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+  trash:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>`,
+  edit:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>`,
+  sell:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.4"/><circle cx="19" cy="21" r="1.4"/><path d="M2 3h2l2.6 12.4a2 2 0 002 1.6h9a2 2 0 002-1.9L21 7H6"/></svg>`,
+  camera:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
+  box:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8L12 3 3 8l9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg>`,
+  rupee:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3h12M6 8h12M6 3c4 0 7 2 7 5s-3 5-7 5h9M6 13l9 8"/></svg>`,
+  profit:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>`,
+  warehouse:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V10l9-6 9 6v11"/><path d="M3 21h18M9 21v-6h6v6"/></svg>`,
+  crane:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9M4 9l7-4 9 4M4 9h14M14 9v12M18 9l-4 5"/></svg>`,
+  hardhat:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18a8 8 0 0116 0z"/><path d="M2 18h20M12 6v6"/></svg>`,
+  alert:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>`,
+  clock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9.5"/><path d="M12 7v5l3.5 2"/></svg>`,
+  phone:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .3 2 .6 2.9a2 2 0 01-.5 2.1L8 10a16 16 0 006 6l1.3-1.2a2 2 0 012.1-.5c.9.3 1.9.5 2.9.6a2 2 0 011.7 2.1z"/></svg>`,
+  file:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>`,
+  print:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>`,
+  download:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>`,
+  x:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`,
+  check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>`,
+};
+
+const NAV_ITEMS = [
+  {id:"dashboard", label:"Dashboard", icon:"dashboard"},
+  {id:"inventory", label:"Inventory", icon:"inventory"},
+  {id:"customers", label:"Customers", icon:"customers"},
+  {id:"suppliers", label:"Suppliers", icon:"suppliers"},
+  {id:"sites", label:"Construction Sites", icon:"sites"},
+  {id:"workers", label:"Workers", icon:"workers"},
+  {id:"invoices", label:"Invoices", icon:"file"},
+  {id:"finance", label:"Finance", icon:"finance"},
+  {id:"analytics", label:"Analytics", icon:"analytics"},
+  {id:"reports", label:"Reports", icon:"reports"},
+  {id:"settings", label:"Settings", icon:"settings"},
+];
+
+const THEMES = [
+  {id:"light", label:"Light", sw:"#f4f2ec"},
+  {id:"dark", label:"Dark", sw:"#181b20"},
+  {id:"construction-orange", label:"Construction Orange", sw:"#ef7d1a"},
+  {id:"forest-green", label:"Forest Green", sw:"#54a866"},
+  {id:"slate-blue", label:"Slate Blue", sw:"#7d8fce"},
+  {id:"midnight", label:"Midnight", sw:"#5c7cfa"},
+];
+
+const NO_PHOTO_CATEGORIES = new Set(["Construction"]);
+function categoryOptionsHtml(selected){
+  return Object.keys(state.categories).map(c=>`<option value="${escapeHtml(c)}" ${c===selected?"selected":""}>${escapeHtml(c)}</option>`).join("") +
+    `<option value="__addcat__">+ Add new category…</option>`;
+}
+function subcategoryOptionsHtml(cat, selected){
+  const subs = state.categories[cat]||[];
+  return subs.map(s=>`<option value="${escapeHtml(s)}" ${s===selected?"selected":""}>${escapeHtml(s)}</option>`).join("") +
+    `<option value="__addsub__">+ Add new subcategory…</option>`;
+}
+function handleCategorySelectChange(catSel, onDone){
+  if(catSel.value==="__addcat__"){
+    const name = (prompt("New category name:")||"").trim();
+    if(name){
+      if(!state.categories[name]) state.categories[name] = [];
+      saveState();
+      catSel.innerHTML = categoryOptionsHtml(name);
+      toast(`Category "${name}" added`);
+    } else {
+      catSel.innerHTML = categoryOptionsHtml(Object.keys(state.categories)[0]);
+    }
+  }
+  onDone();
+}
+function handleSubcategorySelectChange(subSel, cat, onDone){
+  if(subSel.value==="__addsub__"){
+    const name = (prompt(`New subcategory for "${cat}":`)||"").trim();
+    if(name){
+      state.categories[cat] = state.categories[cat]||[];
+      if(!state.categories[cat].includes(name)) state.categories[cat].push(name);
+      saveState();
+      subSel.innerHTML = subcategoryOptionsHtml(cat, name);
+      toast(`Subcategory "${name}" added`);
+    } else {
+      subSel.innerHTML = subcategoryOptionsHtml(cat, (state.categories[cat]||[])[0]);
+    }
+  }
+  if(onDone) onDone();
+}
+
+/* ============== INIT ============== */
+function init(){
+  document.documentElement.setAttribute("data-theme", state.settings.theme);
+  renderLogoBadge();
+  renderOwnerShop();
+  renderNav();
+  renderContent();
+  bindGlobalEvents();
+  setTimeout(()=>{ document.getElementById("splash").classList.add("hide"); }, 550);
+}
+
+function renderLogoBadge(){
+  document.getElementById("logoBadge").innerHTML = `
+    <svg viewBox="0 0 48 48" width="100%" height="100%"><rect width="48" height="48" rx="12" fill="var(--accent)"/>
+    <path d="M12 32V20l12-8 12 8v12" stroke="var(--accent-ink)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M18 32v-9h12v9" stroke="var(--accent-ink)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+}
+function renderOwnerShop(){
+  document.getElementById("ownerNameEl").textContent = state.settings.ownerName;
+  document.getElementById("shopNameEl").textContent = state.settings.shopName;
+}
+function renderNav(){
+  const el = document.getElementById("navList");
+  const lowStock = state.products.filter(p=>Number(p.stock) <= Number(p.lowStock||0)).length;
+  el.innerHTML = NAV_ITEMS.map(n => `
+    <div class="nav-item ${tab===n.id?'active':''}" data-tab="${n.id}">
+      ${ICONS[n.icon]}<span class="label">${n.label}</span>
+      ${n.id==='inventory' && lowStock>0 ? `<span class="badge">${lowStock}</span>` : ""}
+    </div>`).join("");
+  el.querySelectorAll(".nav-item").forEach(item=>{
+    item.addEventListener("click", ()=>{ setTab(item.dataset.tab); closeMobileSidebar(); });
+  });
+}
+function openThemeModal(){
+  openModal(`
+    ${modalHeader("Choose a Theme")}
+    <div class="modal-body">
+      <p style="font-size:12px; color:var(--ink-muted); margin:0 0 12px;">Tap a theme to apply it instantly. This also updates it in Settings.</p>
+      <div class="settings-grid" id="themeModalGrid">
+        ${THEMES.map(t=>`<div class="theme-tile ${state.settings.theme===t.id?'active':''}" data-theme-id="${t.id}">
+          <div class="theme-tile-swatch" style="background:${t.sw}"></div>${t.label}
+        </div>`).join("")}
+      </div>
+    </div>
+  `);
+  document.querySelectorAll("#themeModalGrid .theme-tile").forEach(el=> el.addEventListener("click", ()=>{ setTheme(el.dataset.themeId); closeModal(); }));
+}
+function setTheme(id){
+  state.settings.theme = id;
+  document.documentElement.setAttribute("data-theme", id);
+  saveState(); renderLogoBadge();
+  if(tab==="settings") renderContent();
+}
+function setTab(t){ tab = t; searchQuery=""; document.getElementById("searchInput").value=""; hideSearchResults(); renderNav(); renderContent(); document.getElementById("content").scrollTop=0; }
+
+function bindGlobalEvents(){
+  document.getElementById("collapseBtn").addEventListener("click", ()=>{
+    sidebarCollapsed = !sidebarCollapsed;
+    document.getElementById("sidebar").classList.toggle("collapsed", sidebarCollapsed);
+  });
+  document.getElementById("hamburgerBtn").addEventListener("click", ()=>{
+    document.getElementById("sidebar").classList.add("mobile-open");
+    document.getElementById("scrim").style.display="block";
+  });
+  document.getElementById("themeBtn").addEventListener("click", openThemeModal);
+  document.getElementById("scrim").addEventListener("click", closeMobileSidebar);
+  document.getElementById("ownerNameEl").addEventListener("blur", (e)=>{ state.settings.ownerName = e.target.textContent.trim()||"Owner"; saveState(); });
+  document.getElementById("shopNameEl").addEventListener("blur", (e)=>{ state.settings.shopName = e.target.textContent.trim()||"My Shop"; saveState(); });
+  [document.getElementById("ownerNameEl"), document.getElementById("shopNameEl")].forEach(el=>{
+    el.addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); el.blur(); } });
+  });
+  document.getElementById("searchInput").addEventListener("input", (e)=>{ searchQuery = e.target.value.trim(); runSearch(searchQuery); });
+  document.getElementById("searchInput").addEventListener("focus", (e)=>{ if(searchQuery) runSearch(searchQuery); });
+  document.addEventListener("click", (e)=>{
+    if(!e.target.closest(".search-wrap")) hideSearchResults();
+  });
+  document.getElementById("modalBackdrop").addEventListener("click", (e)=>{ if(e.target.id==="modalBackdrop") closeModal(); });
+  document.getElementById("fabBtn").addEventListener("click", fabAction);
+  document.getElementById("exportBtn").addEventListener("click", exportBackup);
+  document.getElementById("restoreFileInput").addEventListener("change", handleRestoreFile);
+  document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeModal(); });
+}
+function closeMobileSidebar(){
+  document.getElementById("sidebar").classList.remove("mobile-open");
+  document.getElementById("scrim").style.display="none";
+}
+function fabAction(){
+  const map = {inventory:openAddProductModal, customers:openAddCustomerModal, suppliers:openAddSupplierModal, sites:openAddSiteModal, workers:openAddWorkerModal, invoices:openSellModal, finance:openAddTransactionModal};
+  if(map[tab]) map[tab](); else setTab("inventory");
+}
+
+/* ============== MODAL HELPERS ============== */
+function openModal(html, wide=false){
+  const body = document.getElementById("modalBody");
+  body.className = "modal" + (wide?" wide":"");
+  body.innerHTML = html;
+  document.getElementById("modalBackdrop").classList.add("show");
+}
+function closeModal(){ document.getElementById("modalBackdrop").classList.remove("show"); }
+function modalHeader(title){
+  return `<div class="modal-head"><div class="modal-title">${escapeHtml(title)}</div><button class="close-x" onclick="closeModal()">${ICONS.x}</button></div>`;
+}
+function confirmDelete(message, onConfirm){
+  openModal(`
+    <div class="modal-body" style="text-align:center; padding-top:26px;">
+      <div class="confirm-icon">${ICONS.alert}</div>
+      <h3 style="font-size:15.5px; margin-bottom:6px;">Are you sure?</h3>
+      <p style="font-size:12.5px; color:var(--ink-muted); max-width:320px; margin:0 auto;">${escapeHtml(message)}</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">${ICONS.trash} Delete</button>
+    </div>`);
+  document.getElementById("confirmDeleteBtn").addEventListener("click", ()=>{ onConfirm(); closeModal(); });
+}
+
+/* ============== MAIN RENDER DISPATCH ============== */
+function renderContent(){
+  const el = document.getElementById("content");
+  const map = {
+    dashboard: renderDashboard, inventory: renderInventory, customers: renderCustomers,
+    suppliers: renderSuppliers, sites: renderSites, workers: renderWorkers, invoices: renderInvoices,
+    finance: renderFinance, analytics: renderAnalytics, reports: renderReports, settings: renderSettings
+  };
+  el.innerHTML = (map[tab]||renderDashboard)();
+  bindPageEvents();
+}
+
+/* ============== DASHBOARD ============== */
+function computeTotals(){
+  const revenue = state.transactions.filter(t=>t.type==="revenue").reduce((s,t)=>s+Number(t.amount),0);
+  const expenses = state.transactions.filter(t=>t.type==="expense").reduce((s,t)=>s+Number(t.amount),0);
+  const profit = revenue - expenses;
+  const inventoryValue = state.products.reduce((s,p)=>s+Number(p.stock)*Number(p.sellingPrice||0),0);
+  const pending = state.customers.reduce((s,c)=>s+Number(c.pending||0),0);
+  const lowStock = state.products.filter(p=>Number(p.stock)<=Number(p.lowStock||0));
+  const activeSites = state.sites.filter(s=>Number(s.progress||0) < 100).length;
+  const workersToday = state.workers.filter(w=> (w.attendance||[]).some(a=>a.date===todayStr() && a.present)).length;
+  return {revenue, expenses, profit, inventoryValue, pending, lowStock, activeSites, workersToday};
+}
+function renderDashboard(){
+  const t = computeTotals();
+  const cards = [
+    {label:"Total Revenue", val:money(t.revenue), icon:"rupee", tone:"success"},
+    {label:"Total Expenses", val:money(t.expenses), icon:"finance", tone:"danger"},
+    {label:"Estimated Profit", val:money(t.profit), icon:"profit", tone: t.profit>=0?"success":"danger"},
+    {label:"Inventory Value", val:money(t.inventoryValue), icon:"warehouse", tone:"info"},
+    {label:"Total Customers", val:state.customers.length, icon:"customers", tone:"accent"},
+    {label:"Total Suppliers", val:state.suppliers.length, icon:"suppliers", tone:"accent"},
+    {label:"Active Construction Sites", val:t.activeSites, icon:"crane", tone:"warn"},
+    {label:"Workers Today", val:t.workersToday+" / "+state.workers.length, icon:"hardhat", tone:"info"},
+    {label:"Low Stock Items", val:t.lowStock.length, icon:"alert", tone: t.lowStock.length>0?"danger":"success"},
+    {label:"Pending Payments", val:money(t.pending), icon:"clock", tone:"warn"},
+  ];
+  const toneColor = {success:"var(--success)", danger:"var(--danger)", info:"var(--info)", accent:"var(--accent)", warn:"var(--warning)"};
+  const toneBg = {success:"var(--success-soft)", danger:"var(--danger-soft)", info:"var(--info-soft)", accent:"var(--accent-soft)", warn:"var(--warning-soft)"};
+
+  return `
+    <div class="page-head">
+      <div><div class="page-title">Dashboard</div><div class="page-sub">Live overview of your business, updated automatically.</div></div>
+    </div>
+    <div class="stat-grid">
+      ${cards.map(c=>`
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon" style="background:${toneBg[c.tone]};color:${toneColor[c.tone]}">${ICONS[c.icon]}</div>
+          </div>
+          <div class="stat-val">${c.val}</div>
+          <div class="stat-label">${c.label}</div>
+        </div>`).join("")}
+    </div>
+    <div class="dash-grid">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">${ICONS.alert} Low Stock Alerts</div></div>
+        ${t.lowStock.length===0 ? emptyState("box","All stocked up","No products are below their low-stock threshold right now.") :
+          `<div style="display:flex; flex-direction:column;">${t.lowStock.map(p=>`
+            <div class="list-row">
+              <div class="list-avatar">${ICONS.box}</div>
+              <div style="flex:1;"><div style="font-weight:700;font-size:13px;">${escapeHtml(p.name)}</div><div style="font-size:11.5px;color:var(--ink-muted);">${escapeHtml(p.category)} · ${escapeHtml(p.subcategory||"")}</div></div>
+              <span class="tag tag-danger">${p.stock} left</span>
+            </div>`).join("")}</div>`}
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">${ICONS.clock} Recent Activity</div></div>
+        ${state.activity.length===0 ? emptyState("clock","No activity yet","Actions you take across the app will show up here.") :
+          state.activity.slice(0,10).map(a=>`
+            <div class="activity-row">
+              <div class="activity-dot"></div>
+              <div><div class="activity-text">${escapeHtml(a.text)}</div><div class="activity-time">${timeAgo(a.date)}</div></div>
+            </div>`).join("")}
+      </div>
+    </div>`;
+}
+function timeAgo(iso){
+  const diff = (Date.now() - new Date(iso).getTime())/1000;
+  if(diff<60) return "just now";
+  if(diff<3600) return Math.floor(diff/60)+"m ago";
+  if(diff<86400) return Math.floor(diff/3600)+"h ago";
+  return Math.floor(diff/86400)+"d ago";
+}
+function emptyState(icon,title,sub,actionHtml=""){
+  return `<div class="empty-state">${ICONS[icon]||ICONS.box}<h3>${escapeHtml(title)}</h3><p>${escapeHtml(sub)}</p>${actionHtml}</div>`;
+}
+
+/* ============== INVENTORY ============== */
+function renderInventory(){
+  const cats = ["All", ...Object.keys(state.categories)];
+  let list = state.products.filter(p=>{
+    if(invCategoryFilter!=="All" && p.category!==invCategoryFilter) return false;
+    if(stockFilter==="low" && !(Number(p.stock)<=Number(p.lowStock||0))) return false;
+    if(stockFilter==="out" && Number(p.stock)>0) return false;
+    if(searchQuery && tab==="inventory"){} // search box drives global search, not local filter
+    return true;
+  });
+  return `
+    <div class="page-head">
+      <div><div class="page-title">Inventory</div><div class="page-sub">${state.products.length} products across ${Object.keys(state.categories).length} categories.</div></div>
+      <button class="btn btn-primary" onclick="openAddProductModal()">${ICONS.plus} Add Product</button>
+    </div>
+    <div class="toolbar">
+      ${cats.map(c=>`<div class="chip ${invCategoryFilter===c?'active':''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</div>`).join("")}
+      <div style="flex:1"></div>
+      <div class="chip ${stockFilter==='all'?'active':''}" data-stock="all">All stock</div>
+      <div class="chip ${stockFilter==='low'?'active':''}" data-stock="low">Low stock</div>
+      <div class="chip ${stockFilter==='out'?'active':''}" data-stock="out">Out of stock</div>
+    </div>
+    ${list.length===0 ? emptyState("inventory","No products yet","Add your first product — cement, pipes, fittings, anything you stock.", `<button class="btn btn-primary" onclick="openAddProductModal()">${ICONS.plus} Add Product</button>`) :
+    `<div class="card-grid">${list.map(p=>productCard(p)).join("")}</div>`}
+  `;
+}
+function productCard(p){
+  const low = Number(p.stock) <= Number(p.lowStock||0);
+  const out = Number(p.stock) <= 0;
+  return `
+    <div class="entity-card" data-product-open="${p.id}">
+      <div>
+        <div class="entity-title">${escapeHtml(p.name)}</div>
+        <div class="entity-sub">${escapeHtml(p.category)}${p.subcategory?" · "+escapeHtml(p.subcategory):""}</div>
+      </div>
+      <div class="card-price-row">
+        <span class="card-price">${money(p.sellingPrice)}</span>
+        <span class="stock-pill" style="background:${out?'var(--danger-soft)':low?'var(--warning-soft)':'var(--success-soft)'}; color:${out?'var(--danger)':low?'var(--warning)':'var(--success)'}">${out?"Out of stock":p.stock+" in stock"}</span>
+      </div>
+    </div>`;
+}
+function openAddProductModal(){
+  const catOpts = categoryOptionsHtml(Object.keys(state.categories)[0]);
+  openModal(`
+    ${modalHeader("Add Product")}
+    <div class="modal-body">
+      <div class="form-field"><span>Product name</span><input class="input" id="f_name" placeholder="e.g. Sintex Wash Basin" /></div>
+      <div class="form-row">
+        <div class="form-field"><span>Category</span><select class="select" id="f_cat">${catOpts}</select></div>
+        <div class="form-field"><span>Subcategory</span><select class="select" id="f_subcat"></select></div>
+      </div>
+      <div class="form-row3">
+        <div class="form-field"><span>Stock qty</span><input class="input" type="number" min="0" id="f_stock" value="0" /></div>
+        <div class="form-field"><span>Low stock alert</span><input class="input" type="number" min="0" id="f_low" value="10" /></div>
+        <div class="form-field"><span>Supplier</span><select class="select" id="f_supplier"><option value="">— None —</option>${state.suppliers.map(s=>`<option value="${s.id}">${escapeHtml(s.company)}</option>`).join("")}</select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span>Purchase price (${state.settings.currency})</span><input class="input" type="number" min="0" step="0.01" id="f_buy" value="0" /></div>
+        <div class="form-field"><span>Selling price (${state.settings.currency})</span><input class="input" type="number" min="0" step="0.01" id="f_sell" value="0" /></div>
+      </div>
+      <div class="form-field"><span>Notes</span><textarea class="textarea" id="f_notes" placeholder="Optional notes…"></textarea></div>
+      <div class="form-field" id="photoFieldWrap">
+        <span>Product photos</span>
+        <div class="photo-grid" id="photoGrid"></div>
+      </div>
+      <input type="file" id="photoFileInput" accept="image/*" multiple style="display:none" />
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveProductBtn">${ICONS.check} Save Product</button></div>
+  `, true);
+  const tempPhotos = [];
+  const catSel = document.getElementById("f_cat");
+  const subSel = document.getElementById("f_subcat");
+  function refreshSub(){
+    subSel.innerHTML = subcategoryOptionsHtml(catSel.value, null);
+    togglePhotoField();
+  }
+  function togglePhotoField(){
+    const wrap = document.getElementById("photoFieldWrap");
+    wrap.style.display = NO_PHOTO_CATEGORIES.has(catSel.value) ? "none" : "flex";
+  }
+  catSel.addEventListener("change", ()=> handleCategorySelectChange(catSel, refreshSub));
+  subSel.addEventListener("change", ()=> handleSubcategorySelectChange(subSel, catSel.value));
+  refreshSub();
+  function renderPhotoGrid(){
+    const grid = document.getElementById("photoGrid");
+    grid.innerHTML = tempPhotos.map((src,i)=>`<div class="photo-thumb"><img src="${src}"/><div class="rm" data-rm="${i}">✕</div></div>`).join("") +
+      `<div class="photo-add" id="photoAddBtn">${ICONS.camera}<span>Add</span></div>`;
+    grid.querySelectorAll("[data-rm]").forEach(b=>b.addEventListener("click", ()=>{ tempPhotos.splice(+b.dataset.rm,1); renderPhotoGrid(); }));
+    document.getElementById("photoAddBtn").addEventListener("click", ()=>document.getElementById("photoFileInput").click());
+  }
+  renderPhotoGrid();
+  document.getElementById("photoFileInput").addEventListener("change", (e)=>{
+    [...e.target.files].forEach(f=>{
+      const r = new FileReader();
+      r.onload = ()=>{ tempPhotos.push(r.result); renderPhotoGrid(); };
+      r.readAsDataURL(f);
+    });
+    e.target.value="";
+  });
+  document.getElementById("saveProductBtn").addEventListener("click", ()=>{
+    const name = document.getElementById("f_name").value.trim();
+    if(!name){ toast("Please enter a product name", false); return; }
+    const p = {
+      id: uid(), name, category: catSel.value, subcategory: document.getElementById("f_subcat").value,
+      stock: +document.getElementById("f_stock").value||0, lowStock: +document.getElementById("f_low").value||0,
+      purchasePrice: +document.getElementById("f_buy").value||0, sellingPrice: +document.getElementById("f_sell").value||0,
+      supplierId: document.getElementById("f_supplier").value||null, notes: document.getElementById("f_notes").value.trim(),
+      photos: tempPhotos.slice()
+    };
+    state.products.push(p); logActivity(`Added product "${p.name}" to inventory`); saveState(); closeModal(); renderContent(); toast("Product added");
+  });
+}
+function openProductDetail(id){
+  const p = state.products.find(x=>x.id===id); if(!p) return;
+  const supplier = state.suppliers.find(s=>s.id===p.supplierId);
+  openModal(`
+    ${modalHeader(p.name)}
+    <div class="modal-body">
+      ${p.photos && p.photos[0] ? `<div class="product-thumb" style="height:180px; margin-bottom:12px;"><img src="${p.photos[0]}"/></div>` : ""}
+      ${p.photos && p.photos.length>1 ? `<div class="photo-grid" style="margin-bottom:14px;">${p.photos.map((ph,i)=>`<div class="photo-thumb" data-lightbox="${i}"><img src="${ph}"/></div>`).join("")}</div>` : ""}
+      <div class="form-row">
+        <div><div class="entity-sub">Category</div><div style="font-weight:700;">${escapeHtml(p.category)} ${p.subcategory?"· "+escapeHtml(p.subcategory):""}</div></div>
+        <div><div class="entity-sub">Supplier</div><div style="font-weight:700;">${supplier?escapeHtml(supplier.company):"—"}</div></div>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <div><div class="entity-sub">Stock</div><div style="font-weight:700;">${p.stock} units</div></div>
+        <div><div class="entity-sub">Low stock alert</div><div style="font-weight:700;">${p.lowStock}</div></div>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <div><div class="entity-sub">Purchase price</div><div style="font-weight:700;">${money(p.purchasePrice)}</div></div>
+        <div><div class="entity-sub">Selling price</div><div style="font-weight:700;">${money(p.sellingPrice)}</div></div>
+      </div>
+      ${p.notes?`<div style="margin-top:12px;"><div class="entity-sub">Notes</div><div style="font-size:12.5px; margin-top:3px;">${escapeHtml(p.notes)}</div></div>`:""}
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" id="delProdBtn">${ICONS.trash} Delete</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="editProdBtn">${ICONS.edit} Edit</button>
+      <button class="btn btn-primary" id="sellProdBtn">${ICONS.sell} Sell</button>
+    </div>
+  `, true);
+  document.querySelectorAll("[data-lightbox]").forEach(el=>{
+    el.addEventListener("click", ()=> openLightbox(p.photos, +el.dataset.lightbox));
+  });
+  document.getElementById("delProdBtn").addEventListener("click", ()=>{
+    confirmDelete(`This will permanently remove "${p.name}" from inventory.`, ()=>{
+      state.products = state.products.filter(x=>x.id!==id); logActivity(`Deleted product "${p.name}"`); saveState(); renderContent(); toast("Product deleted");
+    });
+  });
+  document.getElementById("editProdBtn").addEventListener("click", ()=> openEditProductModal(id));
+  document.getElementById("sellProdBtn").addEventListener("click", ()=> openSellModal(id));
+}
+function openLightbox(photos, idx){
+  openModal(`
+    ${modalHeader(`Photo ${idx+1} of ${photos.length}`)}
+    <div class="modal-body"><img class="lightbox-img" src="${photos[idx]}" /></div>
+  `);
+}
+function openEditProductModal(id){
+  const p = state.products.find(x=>x.id===id); if(!p) return;
+  const catOpts = categoryOptionsHtml(p.category);
+  openModal(`
+    ${modalHeader("Edit Product")}
+    <div class="modal-body">
+      <div class="form-field"><span>Product name</span><input class="input" id="f_name" value="${escapeHtml(p.name)}" /></div>
+      <div class="form-row">
+        <div class="form-field"><span>Category</span><select class="select" id="f_cat">${catOpts}</select></div>
+        <div class="form-field"><span>Subcategory</span><select class="select" id="f_subcat"></select></div>
+      </div>
+      <div class="form-row3">
+        <div class="form-field"><span>Stock qty</span><input class="input" type="number" min="0" id="f_stock" value="${p.stock}" /></div>
+        <div class="form-field"><span>Low stock alert</span><input class="input" type="number" min="0" id="f_low" value="${p.lowStock}" /></div>
+        <div class="form-field"><span>Supplier</span><select class="select" id="f_supplier"><option value="">— None —</option>${state.suppliers.map(s=>`<option value="${s.id}" ${s.id===p.supplierId?"selected":""}>${escapeHtml(s.company)}</option>`).join("")}</select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span>Purchase price</span><input class="input" type="number" min="0" step="0.01" id="f_buy" value="${p.purchasePrice}" /></div>
+        <div class="form-field"><span>Selling price</span><input class="input" type="number" min="0" step="0.01" id="f_sell" value="${p.sellingPrice}" /></div>
+      </div>
+      <div class="form-field"><span>Notes</span><textarea class="textarea" id="f_notes">${escapeHtml(p.notes||"")}</textarea></div>
+      <div class="form-field"><span>Product photos</span><div class="photo-grid" id="photoGrid"></div></div>
+      <input type="file" id="photoFileInput" accept="image/*" multiple style="display:none" />
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveEditBtn">${ICONS.check} Save Changes</button></div>
+  `, true);
+  const tempPhotos = (p.photos||[]).slice();
+  const catSel = document.getElementById("f_cat");
+  const subSel = document.getElementById("f_subcat");
+  function refreshSub(){ subSel.innerHTML = subcategoryOptionsHtml(catSel.value, p.subcategory); }
+  catSel.addEventListener("change", ()=> handleCategorySelectChange(catSel, refreshSub));
+  subSel.addEventListener("change", ()=> handleSubcategorySelectChange(subSel, catSel.value));
+  refreshSub();
+  function renderPhotoGrid(){
+    const grid = document.getElementById("photoGrid");
+    grid.innerHTML = tempPhotos.map((src,i)=>`<div class="photo-thumb"><img src="${src}"/><div class="rm" data-rm="${i}">✕</div></div>`).join("") +
+      `<div class="photo-add" id="photoAddBtn">${ICONS.camera}<span>Add</span></div>`;
+    grid.querySelectorAll("[data-rm]").forEach(b=>b.addEventListener("click", ()=>{ tempPhotos.splice(+b.dataset.rm,1); renderPhotoGrid(); }));
+    document.getElementById("photoAddBtn").addEventListener("click", ()=>document.getElementById("photoFileInput").click());
+  }
+  renderPhotoGrid();
+  document.getElementById("photoFileInput").addEventListener("change", (e)=>{
+    [...e.target.files].forEach(f=>{ const r=new FileReader(); r.onload=()=>{ tempPhotos.push(r.result); renderPhotoGrid(); }; r.readAsDataURL(f); });
+    e.target.value="";
+  });
+  document.getElementById("saveEditBtn").addEventListener("click", ()=>{
+    p.name = document.getElementById("f_name").value.trim()||p.name;
+    p.category = catSel.value; p.subcategory = document.getElementById("f_subcat").value;
+    p.stock = +document.getElementById("f_stock").value||0; p.lowStock = +document.getElementById("f_low").value||0;
+    p.supplierId = document.getElementById("f_supplier").value||null;
+    p.purchasePrice = +document.getElementById("f_buy").value||0; p.sellingPrice = +document.getElementById("f_sell").value||0;
+    p.notes = document.getElementById("f_notes").value.trim(); p.photos = tempPhotos.slice();
+    logActivity(`Updated product "${p.name}"`); saveState(); closeModal(); renderContent(); toast("Product updated");
+  });
+}
+
+/* ============== SELLING WORKFLOW ============== */
+function openSellModal(preselectedProductId){
+  openModal(`
+    ${modalHeader("New Sale")}
+    <div class="modal-body">
+      <div class="form-field"><span>Customer <span style="color:var(--ink-faint); font-weight:400;">(optional)</span></span>
+        <select class="select" id="f_customer">
+          <option value="">— Walk-in customer —</option>
+          ${state.customers.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="form-field"><span>Product</span>
+        <select class="select" id="f_product">
+          <option value="">— Select product —</option>
+          ${state.products.filter(p=>p.stock>0).map(p=>`<option value="${p.id}" ${p.id===preselectedProductId?"selected":""}>${escapeHtml(p.name)} (${p.stock} in stock · ${money(p.sellingPrice)})</option>`).join("")}
+        </select>
+      </div>
+      <div class="form-field"><span>Quantity</span><input class="input" type="number" min="1" id="f_qty" value="1" /></div>
+      <div class="form-field"><span>Payment status</span>
+        <div class="seg-toggle" id="paidToggle">
+          <div class="seg-opt active" data-val="paid">${ICONS.check} Paid</div>
+          <div class="seg-opt" data-val="unpaid">${ICONS.alert} Unpaid</div>
+        </div>
+      </div>
+      <div id="saleSummary" style="font-size:13px; color:var(--ink-muted); padding:10px 0; font-weight:600;"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="genInvoiceBtn">${ICONS.file} Generate Invoice</button></div>
+  `);
+  let salePaid = true;
+  if(!state.products.some(p=>p.stock>0)){
+    document.getElementById("saleSummary").innerHTML = `<span style="color:var(--warning);">Add an in-stock product before creating a sale.</span>`;
+  }
+  document.querySelectorAll("#paidToggle .seg-opt").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      document.querySelectorAll("#paidToggle .seg-opt").forEach(x=>x.classList.remove("active"));
+      el.classList.add("active");
+      salePaid = el.dataset.val==="paid";
+    });
+  });
+  function updateSummary(){
+    const prod = state.products.find(p=>p.id===document.getElementById("f_product").value);
+    const qty = +document.getElementById("f_qty").value||0;
+    if(prod){
+      document.getElementById("f_qty").max = prod.stock;
+      document.getElementById("saleSummary").innerHTML = `Total: <strong>${money(prod.sellingPrice*qty)}</strong> · ${prod.stock} available`;
+    }
+  }
+  document.getElementById("f_product").addEventListener("change", updateSummary);
+  document.getElementById("f_qty").addEventListener("input", updateSummary);
+  updateSummary();
+  document.getElementById("genInvoiceBtn").addEventListener("click", ()=>{
+    const custId = document.getElementById("f_customer").value;
+    const prodId = document.getElementById("f_product").value;
+    const qty = +document.getElementById("f_qty").value||0;
+    if(!prodId || qty<1){ toast("Select a product and quantity", false); return; }
+    const prod = state.products.find(p=>p.id===prodId);
+    const cust = custId ? state.customers.find(c=>c.id===custId) : null;
+    if(qty>prod.stock){ toast("Not enough stock available", false); return; }
+    const total = prod.sellingPrice*qty;
+    prod.stock -= qty;
+    const paid = salePaid ? total : 0;
+    const balance = total - paid;
+    if(cust){
+      cust.pending = Number(cust.pending||0) + balance;
+      cust.paid = Number(cust.paid||0) + paid;
+      cust.ledger = cust.ledger||[];
+      cust.ledger.unshift({date: todayStr(), type:"sale", desc:`${qty} × ${prod.name}`, amount: total, paid, balance});
+    }
+    const invNum = "INV-" + (state.invoiceSeq++);
+    const custName = cust ? cust.name : "Walk-in Customer";
+    state.transactions.push({id:uid(), date:todayStr(), type:"revenue", category:"Sale", amount: total, note:`${invNum} — ${prod.name} × ${qty} to ${custName}`});
+    const invoice = {id:uid(), number: invNum, date: todayStr(), customerId: cust?cust.id:null, customerName: custName,
+      customerPhone: cust?cust.phone:"", category: prod.category, items:[{name:prod.name, qty, price:prod.sellingPrice, total}], total, paid: salePaid, paidAmount: paid, balance};
+    state.invoices = state.invoices||[];
+    state.invoices.unshift(invoice);
+    logActivity(`Sold ${qty} × ${prod.name} to ${custName} for ${money(total)}`);
+    saveState();
+    closeModal();
+    renderContent();
+    toast("Sale recorded — inventory updated");
+    openInvoicePreview(invoice);
+  });
+}
+function renderInvoices(){
+  state.invoices = state.invoices||[];
+  const cats = ["All", ...Object.keys(state.categories)];
+  const filtered = state.invoices.filter(inv => (invoiceFilter==="All" || inv.category===invoiceFilter));
+  return `
+    <div class="page-head">
+      <div><div class="page-title">Invoices</div><div class="page-sub">${state.invoices.length} invoices generated so far.</div></div>
+      <button class="btn btn-primary" onclick="openSellModal()">${ICONS.plus} New Sale</button>
+    </div>
+    <div class="chip-row" style="margin-bottom:14px; display:flex; gap:8px; flex-wrap:wrap;">
+      ${cats.map(c=>`<div class="chip ${invoiceFilter===c?'active':''}" data-invcat="${c}">${c}</div>`).join("")}
+    </div>
+    ${filtered.length===0 ? emptyState("file","No invoices yet","Generate a sale from Inventory to see invoices here.") :
+    `<div class="panel" style="padding:0; overflow:hidden;">
+      ${filtered.map(inv=>`
+        <div class="list-row" data-invoice-open="${inv.id}" style="cursor:pointer;">
+          <div class="list-avatar" style="width:36px;height:36px;">${ICONS.file}</div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:13px;">${inv.number} · ${escapeHtml(inv.customerName)}</div>
+            <div class="entity-sub">${fmtDate(inv.date)} · ${escapeHtml(inv.category||"")} · ${inv.items.map(it=>escapeHtml(it.name)).join(", ")}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:800;">${money(inv.total)}</div>
+            <span class="tag ${inv.paid?'tag-success':'tag-danger'}">${inv.paid?"Paid":"Unpaid"}</span>
+          </div>
+        </div>
+      `).join("")}
+    </div>`}
+  `;
+}
+function openInvoicePreview(inv){
+  const rowsHtml = inv.items.map(it=>`<tr><td>${escapeHtml(it.name)}</td><td>${it.qty}</td><td>${money(it.price)}</td><td>${money(it.total)}</td></tr>`).join("");
+  openModal(`
+    ${modalHeader("Invoice Preview")}
+    <div class="modal-body">
+      <div class="invoice-sheet" id="invoiceSheet">
+        <div class="inv-head">
+          <div><h2 style="font-family:var(--font-display);">${escapeHtml(state.settings.shopName)}</h2><div style="font-size:11.5px;color:#555;">Owner: ${escapeHtml(state.settings.ownerName)}</div></div>
+          <div style="text-align:right; font-size:12px;"><div><strong>${inv.number}</strong></div><div>${fmtDate(inv.date)}</div></div>
+        </div>
+        <div style="font-size:12.5px; margin-bottom:6px;"><strong>Bill To:</strong> ${escapeHtml(inv.customerName||"Walk-in Customer")} ${inv.customerPhone?" · "+escapeHtml(inv.customerPhone):""}</div>
+        <table><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+        <div style="text-align:right; margin-top:14px; font-size:13.5px;">
+          <div>Total: <strong>${money(inv.total)}</strong></div>
+          <div>Status: <strong style="color:${inv.paid?'#1f8a4c':'#c13f3f'}">${inv.paid?"Paid":"Unpaid"}</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="printInvBtn">${ICONS.print} Print</button>
+      <button class="btn btn-primary" id="pdfInvBtn">${ICONS.download} Download PDF</button>
+    </div>
+  `, true);
+  document.getElementById("printInvBtn").addEventListener("click", ()=>{
+    const w = window.open("", "_blank");
+    w.document.write(`<html><head><title>${inv.number}</title></head><body>${document.getElementById("invoiceSheet").outerHTML}</body></html>`);
+    w.document.close(); w.focus(); setTimeout(()=>w.print(), 300);
+  });
+  document.getElementById("pdfInvBtn").addEventListener("click", ()=> downloadInvoicePDF(inv));
+}
+function downloadInvoicePDF(inv){
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16); doc.text(state.settings.shopName, 14, 18);
+    doc.setFontSize(10); doc.text("Owner: " + state.settings.ownerName, 14, 25);
+    doc.text(inv.number, 160, 18); doc.text(fmtDate(inv.date), 160, 25);
+    doc.text("Bill To: " + (inv.customerName||"Walk-in Customer") + (inv.customerPhone?(" · "+inv.customerPhone):""), 14, 36);
+    let y = 48;
+    doc.setFontSize(9); doc.text("Product", 14, y); doc.text("Qty", 110, y); doc.text("Price", 135, y); doc.text("Total", 165, y);
+    y += 5; doc.line(14, y, 196, y); y += 6;
+    inv.items.forEach(it=>{
+      doc.text(String(it.name).slice(0,38), 14, y); doc.text(String(it.qty), 110, y); doc.text(String(it.price), 135, y); doc.text(String(it.total), 165, y);
+      y += 7;
+    });
+    y += 4; doc.line(14, y, 196, y); y += 8;
+    doc.setFontSize(11);
+    doc.text("Total: " + state.settings.currency + " " + inv.total, 140, y); y += 7;
+    doc.text("Status: " + (inv.paid?"Paid":"Unpaid"), 140, y);
+    doc.save(inv.number + ".pdf");
+    toast("Invoice PDF downloaded");
+  }catch(e){ toast("PDF generation failed — try Print instead", false); }
+}
+
+/* ============== CUSTOMERS ============== */
+function renderCustomers(){
+  return `
+    <div class="page-head">
+      <div><div class="page-title">Customers</div><div class="page-sub">${state.customers.length} customers on record.</div></div>
+      <button class="btn btn-primary" onclick="openAddCustomerModal()">${ICONS.plus} Add Customer</button>
+    </div>
+    ${state.customers.length===0 ? emptyState("customers","No customers yet","Add a customer to start tracking sales and payments.", `<button class="btn btn-primary" onclick="openAddCustomerModal()">${ICONS.plus} Add Customer</button>`) :
+    `<div class="card-grid">${state.customers.map(c=>`
+      <div class="entity-card" data-customer-open="${c.id}">
+        <div class="list-avatar" style="width:40px;height:40px;font-size:14px;">${escapeHtml(c.name).slice(0,2).toUpperCase()}</div>
+        <div><div class="entity-title">${escapeHtml(c.name)}</div><div class="entity-sub">${escapeHtml(c.phone||"No phone")}</div></div>
+        <div class="card-price-row">
+          <span class="tag ${Number(c.pending)>0?'tag-danger':'tag-success'}">${Number(c.pending)>0?"Due "+money(c.pending):"Settled"}</span>
+          <span class="entity-sub">${(c.ledger||[]).length} orders</span>
+        </div>
+      </div>`).join("")}</div>`}
+  `;
+}
+function openAddCustomerModal(){
+  openModal(`
+    ${modalHeader("Add Customer")}
+    <div class="modal-body">
+      <div class="form-field"><span>Name</span><input class="input" id="f_name" placeholder="Customer name" /></div>
+      <div class="form-row">
+        <div class="form-field"><span>Phone</span><input class="input" id="f_phone" placeholder="Phone number" /></div>
+        <div class="form-field"><span>Email (optional)</span><input class="input" id="f_email" placeholder="email@example.com" /></div>
+      </div>
+      <div class="form-field"><span>Address</span><input class="input" id="f_addr" placeholder="Address" /></div>
+      <div class="form-field"><span>Notes</span><textarea class="textarea" id="f_notes"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveCustBtn">${ICONS.check} Save Customer</button></div>
+  `);
+  document.getElementById("saveCustBtn").addEventListener("click", ()=>{
+    const name = document.getElementById("f_name").value.trim();
+    if(!name){ toast("Please enter a name", false); return; }
+    const c = {id:uid(), name, phone:document.getElementById("f_phone").value.trim(), email:document.getElementById("f_email").value.trim(),
+      address:document.getElementById("f_addr").value.trim(), notes:document.getElementById("f_notes").value.trim(), ledger:[], pending:0, paid:0};
+    state.customers.push(c); logActivity(`Added customer "${c.name}"`); saveState(); closeModal(); renderContent(); toast("Customer added");
+  });
+}
+function openCustomerDetail(id){
+  const c = state.customers.find(x=>x.id===id); if(!c) return;
+  openModal(`
+    ${modalHeader(c.name)}
+    <div class="modal-body">
+      <div class="form-row">
+        <div><div class="entity-sub">Phone</div><div style="font-weight:700;">${escapeHtml(c.phone||"—")}</div></div>
+        <div><div class="entity-sub">Email</div><div style="font-weight:700;">${escapeHtml(c.email||"—")}</div></div>
+      </div>
+      <div style="margin-top:10px;"><div class="entity-sub">Address</div><div style="font-weight:600; font-size:12.5px;">${escapeHtml(c.address||"—")}</div></div>
+      <div class="form-row" style="margin-top:14px;">
+        <div class="panel" style="padding:12px;"><div class="entity-sub">Total Paid</div><div style="font-weight:800; color:var(--success);">${money(c.paid)}</div></div>
+        <div class="panel" style="padding:12px;"><div class="entity-sub">Pending Amount</div><div style="font-weight:800; color:${c.pending>0?'var(--danger)':'var(--success)'};">${money(c.pending)}</div></div>
+      </div>
+      ${c.pending>0 ? `<div style="margin-top:12px;"><button class="btn btn-ghost btn-block" id="recordPaymentBtn">${ICONS.rupee} Record Payment</button></div>`:""}
+      <div style="margin-top:16px;"><div class="panel-title" style="margin-bottom:8px;">Purchase History</div>
+      ${(c.ledger||[]).length===0 ? `<div class="entity-sub">No purchases yet.</div>` :
+        c.ledger.map(l=>`<div class="list-row"><div class="list-avatar">${l.type==='payment'?ICONS.rupee:ICONS.box}</div>
+          <div style="flex:1;"><div style="font-weight:700; font-size:12.5px;">${escapeHtml(l.desc)}</div><div class="entity-sub">${fmtDate(l.date)}</div></div>
+          <div style="font-weight:700; font-size:12.5px;">${money(l.amount)}</div></div>`).join("")}
+      </div>
+      ${c.notes?`<div style="margin-top:12px;"><div class="entity-sub">Notes</div><div style="font-size:12.5px;">${escapeHtml(c.notes)}</div></div>`:""}
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" id="delCustBtn">${ICONS.trash} Delete</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="editCustBtn">${ICONS.edit} Edit</button>
+    </div>
+  `, true);
+  document.getElementById("delCustBtn").addEventListener("click", ()=>{
+    confirmDelete(`This will permanently remove customer "${c.name}" and their history.`, ()=>{
+      state.customers = state.customers.filter(x=>x.id!==id); logActivity(`Deleted customer "${c.name}"`); saveState(); renderContent(); toast("Customer deleted");
+    });
+  });
+  document.getElementById("editCustBtn").addEventListener("click", ()=> openEditCustomerModal(id));
+  const payBtn = document.getElementById("recordPaymentBtn");
+  if(payBtn) payBtn.addEventListener("click", ()=>{
+    openModal(`
+      ${modalHeader("Record Payment")}
+      <div class="modal-body">
+        <div class="form-field"><span>Amount received (${state.settings.currency})</span><input class="input" type="number" min="0" max="${c.pending}" id="f_amt" value="${c.pending}" /></div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="savePayBtn">${ICONS.check} Record</button></div>
+    `);
+    document.getElementById("savePayBtn").addEventListener("click", ()=>{
+      const amt = +document.getElementById("f_amt").value||0;
+      if(amt<=0){ toast("Enter a valid amount", false); return; }
+      c.pending = Math.max(0, c.pending - amt); c.paid = Number(c.paid||0)+amt;
+      c.ledger.unshift({date: todayStr(), type:"payment", desc:"Payment received", amount: amt});
+      state.transactions.push({id:uid(), date:todayStr(), type:"revenue", category:"Payment", amount: amt, note:`Payment from ${c.name}`});
+      logActivity(`Recorded payment of ${money(amt)} from ${c.name}`); saveState(); closeModal(); openCustomerDetail(id); renderNav(); toast("Payment recorded");
+    });
+  });
+}
+function openEditCustomerModal(id){
+  const c = state.customers.find(x=>x.id===id); if(!c) return;
+  openModal(`
+    ${modalHeader("Edit Customer")}
+    <div class="modal-body">
+      <div class="form-field"><span>Name</span><input class="input" id="f_name" value="${escapeHtml(c.name)}" /></div>
+      <div class="form-row">
+        <div class="form-field"><span>Phone</span><input class="input" id="f_phone" value="${escapeHtml(c.phone||"")}" /></div>
+        <div class="form-field"><span>Email</span><input class="input" id="f_email" value="${escapeHtml(c.email||"")}" /></div>
+      </div>
+      <div class="form-field"><span>Address</span><input class="input" id="f_addr" value="${escapeHtml(c.address||"")}" /></div>
+      <div class="form-field"><span>Notes</span><textarea class="textarea" id="f_notes">${escapeHtml(c.notes||"")}</textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveBtn">${ICONS.check} Save Changes</button></div>
+  `);
+  document.getElementById("saveBtn").addEventListener("click", ()=>{
+    c.name = document.getElementById("f_name").value.trim()||c.name;
+    c.phone = document.getElementById("f_phone").value.trim(); c.email = document.getElementById("f_email").value.trim();
+    c.address = document.getElementById("f_addr").value.trim(); c.notes = document.getElementById("f_notes").value.trim();
+    saveState(); closeModal(); openCustomerDetail(id); toast("Customer updated");
+  });
+}
+
+/* ============== SUPPLIERS ============== */
+function renderSuppliers(){
+  return `
+    <div class="page-head">
+      <div><div class="page-title">Suppliers</div><div class="page-sub">${state.suppliers.length} suppliers on record.</div></div>
+      <button class="btn btn-primary" onclick="openAddSupplierModal()">${ICONS.plus} Add Supplier</button>
+    </div>
+    ${state.suppliers.length===0 ? emptyState("suppliers","No suppliers yet","Add a supplier to link them to your inventory items.", `<button class="btn btn-primary" onclick="openAddSupplierModal()">${ICONS.plus} Add Supplier</button>`) :
+    `<div class="card-grid">${state.suppliers.map(s=>{
+      const supplyCount = state.products.filter(p=>p.supplierId===s.id).length;
+      return `<div class="entity-card" data-supplier-open="${s.id}">
+        <div class="list-avatar" style="width:40px;height:40px;">${ICONS.suppliers}</div>
+        <div><div class="entity-title">${escapeHtml(s.company)}</div><div class="entity-sub">${escapeHtml(s.contact||"")}</div></div>
+        <div class="card-price-row">
+          <span class="tag ${Number(s.pending)>0?'tag-danger':'tag-success'}">${Number(s.pending)>0?"Due "+money(s.pending):"Settled"}</span>
+          <span class="entity-sub">${supplyCount} products</span>
+        </div>
+      </div>`;
+    }).join("")}</div>`}
+  `;
+}
+function openAddSupplierModal(){
+  openModal(`
+    ${modalHeader("Add Supplier")}
+    <div class="modal-body">
+      <div class="form-field"><span>Company name</span><input class="input" id="f_company" placeholder="e.g. Shree Building Materials" /></div>
+      <div class="form-row">
+        <div class="form-field"><span>Contact person</span><input class="input" id="f_contact" /></div>
+        <div class="form-field"><span>Phone</span><input class="input" id="f_phone" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span>Email (optional)</span><input class="input" id="f_email" /></div>
+        <div class="form-field"><span>Pending payment</span><input class="input" type="number" min="0" id="f_pending" value="0" /></div>
+      </div>
+      <div class="form-field"><span>Address</span><input class="input" id="f_addr" /></div>
+      <div class="form-field"><span>Products supplied</span><input class="input" id="f_products" placeholder="e.g. Cement, Sand, Rods" /></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveSupBtn">${ICONS.check} Save Supplier</button></div>
+  `);
+  document.getElementById("saveSupBtn").addEventListener("click", ()=>{
+    const company = document.getElementById("f_company").value.trim();
+    if(!company){ toast("Please enter a company name", false); return; }
+    const s = {id:uid(), company, contact:document.getElementById("f_contact").value.trim(), phone:document.getElementById("f_phone").value.trim(),
+      email:document.getElementById("f_email").value.trim(), address:document.getElementById("f_addr").value.trim(),
+      productsSupplied:document.getElementById("f_products").value.trim(), pending:+document.getElementById("f_pending").value||0};
+    state.suppliers.push(s); logActivity(`Added supplier "${s.company}"`); saveState(); closeModal(); renderContent(); toast("Supplier added");
+  });
+}
+function openSupplierDetail(id){
+  const s = state.suppliers.find(x=>x.id===id); if(!s) return;
+  const linkedProducts = state.products.filter(p=>p.supplierId===id);
+  openModal(`
+    ${modalHeader(s.company)}
+    <div class="modal-body">
+      <div class="form-row">
+        <div><div class="entity-sub">Contact</div><div style="font-weight:700;">${escapeHtml(s.contact||"—")}</div></div>
+        <div><div class="entity-sub">Phone</div><div style="font-weight:700;">${escapeHtml(s.phone||"—")}</div></div>
+      </div>
+      <div class="form-row" style="margin-top:10px;">
+        <div><div class="entity-sub">Email</div><div style="font-weight:700;">${escapeHtml(s.email||"—")}</div></div>
+        <div><div class="entity-sub">Pending Payment</div><div style="font-weight:800; color:${s.pending>0?'var(--danger)':'var(--success)'};">${money(s.pending)}</div></div>
+      </div>
+      <div style="margin-top:10px;"><div class="entity-sub">Address</div><div style="font-size:12.5px; font-weight:600;">${escapeHtml(s.address||"—")}</div></div>
+      <div style="margin-top:10px;"><div class="entity-sub">Products Supplied</div><div style="font-size:12.5px; font-weight:600;">${escapeHtml(s.productsSupplied||"—")}</div></div>
+      <div style="margin-top:16px;"><div class="panel-title" style="margin-bottom:8px;">Linked Inventory Items (${linkedProducts.length})</div>
+        ${linkedProducts.length===0?`<div class="entity-sub">No linked products.</div>`:linkedProducts.map(p=>`<div class="list-row"><div class="list-avatar">${ICONS.box}</div><div style="flex:1;"><div style="font-weight:700;font-size:12.5px;">${escapeHtml(p.name)}</div></div><div class="entity-sub">${p.stock} in stock</div></div>`).join("")}
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" id="delSupBtn">${ICONS.trash} Delete</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="editSupBtn">${ICONS.edit} Edit</button>
+    </div>
+  `, true);
+  document.getElementById("delSupBtn").addEventListener("click", ()=>{
+    confirmDelete(`This will permanently remove supplier "${s.company}".`, ()=>{
+      state.suppliers = state.suppliers.filter(x=>x.id!==id); logActivity(`Deleted supplier "${s.company}"`); saveState(); renderContent(); toast("Supplier deleted");
+    });
+  });
+  document.getElementById("editSupBtn").addEventListener("click", ()=>{
+    openModal(`
+      ${modalHeader("Edit Supplier")}
+      <div class="modal-body">
+        <div class="form-field"><span>Company</span><input class="input" id="f_company" value="${escapeHtml(s.company)}" /></div>
+        <div class="form-row">
+          <div class="form-field"><span>Contact</span><input class="input" id="f_contact" value="${escapeHtml(s.contact||"")}" /></div>
+          <div class="form-field"><span>Phone</span><input class="input" id="f_phone" value="${escapeHtml(s.phone||"")}" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><span>Email</span><input class="input" id="f_email" value="${escapeHtml(s.email||"")}" /></div>
+          <div class="form-field"><span>Pending payment</span><input class="input" type="number" id="f_pending" value="${s.pending}" /></div>
+        </div>
+        <div class="form-field"><span>Address</span><input class="input" id="f_addr" value="${escapeHtml(s.address||"")}" /></div>
+        <div class="form-field"><span>Products supplied</span><input class="input" id="f_products" value="${escapeHtml(s.productsSupplied||"")}" /></div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveBtn">${ICONS.check} Save Changes</button></div>
+    `);
+    document.getElementById("saveBtn").addEventListener("click", ()=>{
+      s.company=document.getElementById("f_company").value.trim()||s.company; s.contact=document.getElementById("f_contact").value.trim();
+      s.phone=document.getElementById("f_phone").value.trim(); s.email=document.getElementById("f_email").value.trim();
+      s.pending=+document.getElementById("f_pending").value||0; s.address=document.getElementById("f_addr").value.trim();
+      s.productsSupplied=document.getElementById("f_products").value.trim();
+      saveState(); closeModal(); openSupplierDetail(id); toast("Supplier updated");
+    });
+  });
+}
+
+/* ============== CONSTRUCTION SITES ============== */
+function renderSites(){
+  return `
+    <div class="page-head">
+      <div><div class="page-title">Construction Sites</div><div class="page-sub">${state.sites.length} sites tracked.</div></div>
+      <button class="btn btn-primary" onclick="openAddSiteModal()">${ICONS.plus} Add Site</button>
+    </div>
+    ${state.sites.length===0 ? emptyState("sites","No sites yet","Add a construction site to start logging daily progress.", `<button class="btn btn-primary" onclick="openAddSiteModal()">${ICONS.plus} Add Site</button>`) :
+    `<div class="card-grid">${state.sites.map(s=>{
+      const profit = Number(s.tenderValue||0) - Number(s.currentCost||0);
+      return `<div class="entity-card" data-site-open="${s.id}" style="cursor:pointer;">
+        <div class="list-avatar" style="width:40px;height:40px;">${ICONS.sites}</div>
+        <div><div class="entity-title">${escapeHtml(s.name)}</div><div class="entity-sub">${escapeHtml(s.client||"")} · ${escapeHtml(s.location||"")}</div></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${s.progress||0}%"></div></div>
+        <div class="card-price-row">
+          <span class="entity-sub">${s.progress||0}% complete</span>
+          <span class="tag ${profit>=0?'tag-success':'tag-danger'}">${money(profit)} est. profit</span>
+        </div>
+      </div>`;
+    }).join("")}</div>`}
+  `;
+}
+function openAddSiteModal(){
+  openModal(`
+    ${modalHeader("Add Construction Site")}
+    <div class="modal-body">
+      <div class="form-field"><span>Site name</span><input class="input" id="f_name" placeholder="e.g. Shanti Residency" /></div>
+      <div class="form-row">
+        <div class="form-field"><span>Client</span><input class="input" id="f_client" /></div>
+        <div class="form-field"><span>Location</span><input class="input" id="f_location" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span>Tender value (${state.settings.currency})</span><input class="input" type="number" min="0" id="f_tender" value="0" /></div>
+        <div class="form-field"><span>Expected completion</span><input class="input" type="date" id="f_completion" /></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveSiteBtn">${ICONS.check} Save Site</button></div>
+  `);
+  document.getElementById("saveSiteBtn").addEventListener("click", ()=>{
+    const name = document.getElementById("f_name").value.trim();
+    if(!name){ toast("Please enter a site name", false); return; }
+    const s = {id:uid(), name, client:document.getElementById("f_client").value.trim(), location:document.getElementById("f_location").value.trim(),
+      tenderValue:+document.getElementById("f_tender").value||0, currentCost:0, progress:0,
+      expectedCompletion:document.getElementById("f_completion").value, dailyLogs:[]};
+    state.sites.push(s); logActivity(`Added construction site "${s.name}"`); saveState(); closeModal(); renderContent(); toast("Site added");
+  });
+}
+function openSiteDetail(id){
+  openModal(`<div id="siteModalContent"></div>`, true);
+  refreshSiteDetail(id);
+}
+function refreshSiteDetail(id){
+  const s = state.sites.find(x=>x.id===id); if(!s) return;
+  const profit = Number(s.tenderValue||0) - Number(s.currentCost||0);
+  const workersToday = (s.dailyLogs.find(l=>l.date===todayStr())||{}).workers || 0;
+  const machinesToday = ((s.dailyLogs.find(l=>l.date===todayStr())||{}).machines || []).length;
+  document.getElementById("siteModalContent").innerHTML = `
+    ${modalHeader(s.name)}
+    <div class="modal-body">
+      <div class="form-row">
+        <div><div class="entity-sub">Client</div><div style="font-weight:700;">${escapeHtml(s.client||"—")}</div></div>
+        <div><div class="entity-sub">Location</div><div style="font-weight:700;">${escapeHtml(s.location||"—")}</div></div>
+      </div>
+      <div style="margin:14px 0 6px;"><div class="entity-sub" style="margin-bottom:6px;">Progress — ${s.progress||0}%</div>
+        <input type="range" min="0" max="100" value="${s.progress||0}" id="progressSlider" style="width:100%; accent-color:var(--accent);" />
+      </div>
+      <div class="form-row3">
+        <div class="panel" style="padding:10px;"><div class="entity-sub">Tender Value</div><div style="font-weight:800;">${money(s.tenderValue)}</div></div>
+        <div class="panel" style="padding:10px;"><div class="entity-sub">Current Cost</div><div style="font-weight:800;">${money(s.currentCost)}</div></div>
+        <div class="panel" style="padding:10px;"><div class="entity-sub">Est. Profit</div><div style="font-weight:800; color:${profit>=0?'var(--success)':'var(--danger)'};">${money(profit)}</div></div>
+      </div>
+      <div class="form-row3" style="margin-top:8px;">
+        <div class="panel" style="padding:10px;"><div class="entity-sub">Workers Today</div><div style="font-weight:800;">${workersToday}</div></div>
+        <div class="panel" style="padding:10px;"><div class="entity-sub">Machines Today</div><div style="font-weight:800;">${machinesToday}</div></div>
+        <div class="panel" style="padding:10px;"><div class="entity-sub">Expected Completion</div><div style="font-weight:700; font-size:12px;">${s.expectedCompletion?fmtDate(s.expectedCompletion):"—"}</div></div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:20px;">
+        <div class="panel-title">Daily Site Log</div>
+        <button class="btn btn-sm btn-primary" id="addLogBtn">${ICONS.plus} Add Today's Log</button>
+      </div>
+      ${(s.dailyLogs||[]).length===0 ? emptyState("clock","No logs yet","Add a daily log to record workers, materials, machines and progress.") :
+        s.dailyLogs.map((l,li)=>{
+          const materialsList = Array.isArray(l.materials) ? l.materials : (l.materials ? [{name:l.materials, cost:null}] : []);
+          return `
+          <div class="panel" style="margin-top:10px; padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-size:12.5px;">${fmtDate(l.date)}</strong>
+              <span class="tag tag-accent">${l.progress||0}% progress</span>
+            </div>
+            <div style="font-size:12px; color:var(--ink-muted); margin-top:8px; line-height:1.7;">
+              ${l.workers?`👷 ${l.workers} worker${l.workers>1?'s':''}${l.workerWage?` × ${money(l.workerWage)} = ${money(l.workers*l.workerWage)}`:''}<br/>`:""}
+              ${(l.machines&&l.machines.length)?`🚜 Machines: ${l.machines.map(m=>escapeHtml(m.name)+(m.cost?` (${money(m.cost)})`:'')).join(", ")}<br/>`:""}
+              ${materialsList.length?`📦 Materials: ${materialsList.map(m=>escapeHtml(m.name)+(m.cost?` (${money(m.cost)})`:'')).join(", ")}<br/>`:""}
+              ${l.otherExpenses?`Other expenses: ${money(l.otherExpenses)}<br/>`:""}
+              <strong style="color:var(--ink);">Total expense today: ${money(l.expenses||0)}</strong>
+              ${l.notes?`<br/>Notes: ${escapeHtml(l.notes)}`:""}
+            </div>
+            ${l.photos && l.photos.length ? `<div class="photo-grid" style="margin-top:10px; grid-template-columns:repeat(auto-fill,minmax(84px,1fr));">${l.photos.map((ph,pi)=>`
+              <div>
+                <div class="photo-thumb" data-site-lightbox="${li}:${pi}"><img src="${ph.data}"/></div>
+                ${ph.description?`<div style="font-size:10.5px; color:var(--ink-muted); margin-top:4px; line-height:1.3;">${escapeHtml(ph.description)}</div>`:""}
+              </div>`).join("")}</div>`:""}
+          </div>
+        `;}).join("")}
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" id="delSiteBtn">${ICONS.trash} Delete Site</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="editSiteBtn">${ICONS.edit} Edit Site</button>
+    </div>
+  `;
+  document.getElementById("progressSlider").addEventListener("change", (e)=>{
+    s.progress = +e.target.value; saveState(); refreshSiteDetail(id); renderContent();
+  });
+  document.getElementById("addLogBtn").addEventListener("click", ()=> openAddSiteLogModal(id));
+  document.getElementById("delSiteBtn").addEventListener("click", ()=>{
+    confirmDelete(`This will permanently remove site "${s.name}" and all its logs.`, ()=>{
+      state.sites = state.sites.filter(x=>x.id!==id); logActivity(`Deleted site "${s.name}"`); saveState(); closeModal(); renderContent(); toast("Site deleted");
+    });
+  });
+  document.getElementById("editSiteBtn").addEventListener("click", ()=>{
+    openModal(`
+      ${modalHeader("Edit Site")}
+      <div class="modal-body">
+        <div class="form-field"><span>Site name</span><input class="input" id="f_name" value="${escapeHtml(s.name)}" /></div>
+        <div class="form-row">
+          <div class="form-field"><span>Client</span><input class="input" id="f_client" value="${escapeHtml(s.client||"")}" /></div>
+          <div class="form-field"><span>Location</span><input class="input" id="f_location" value="${escapeHtml(s.location||"")}" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><span>Tender value</span><input class="input" type="number" id="f_tender" value="${s.tenderValue}" /></div>
+          <div class="form-field"><span>Current cost</span><input class="input" type="number" id="f_cost" value="${s.currentCost}" /></div>
+        </div>
+        <div class="form-field"><span>Expected completion</span><input class="input" type="date" id="f_completion" value="${s.expectedCompletion||""}" /></div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveBtn">${ICONS.check} Save Changes</button></div>
+    `);
+    document.getElementById("saveBtn").addEventListener("click", ()=>{
+      s.name=document.getElementById("f_name").value.trim()||s.name; s.client=document.getElementById("f_client").value.trim();
+      s.location=document.getElementById("f_location").value.trim(); s.tenderValue=+document.getElementById("f_tender").value||0;
+      s.currentCost=+document.getElementById("f_cost").value||0; s.expectedCompletion=document.getElementById("f_completion").value;
+      saveState(); closeModal(); openSiteDetail(id); toast("Site updated");
+    });
+  });
+  document.querySelectorAll("[data-site-lightbox]").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const [li,pi] = el.dataset.siteLightbox.split(":").map(Number);
+      const photos = s.dailyLogs[li].photos.map(p=>p.data);
+      openLightbox(photos, pi);
+    });
+  });
+}
+function openAddSiteLogModal(id){
+  const s = state.sites.find(x=>x.id===id); if(!s) return;
+  openModal(`
+    ${modalHeader("Add Today's Log")}
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-field"><span>Date</span><input class="input" type="date" id="f_date" value="${todayStr()}" /></div>
+        <div class="form-field"><span>Progress (%)</span><input class="input" type="number" min="0" max="100" id="f_progress" value="${s.progress||0}" /></div>
+      </div>
+
+      <div class="panel-title" style="margin:14px 0 8px; font-size:12.5px;">Workers</div>
+      <div class="form-row">
+        <div class="form-field"><span>Workers present</span><input class="input" type="number" min="0" id="f_workers" value="0" /></div>
+        <div class="form-field"><span>Daily wage per worker (${state.settings.currency})</span><input class="input" type="number" min="0" id="f_workerWage" value="0" /></div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin:14px 0 8px;">
+        <div class="panel-title" style="font-size:12.5px;">Machines used</div>
+        <button type="button" class="btn btn-sm btn-ghost" id="addMachineBtn">${ICONS.plus} Add machine</button>
+      </div>
+      <div id="machineRows"></div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin:14px 0 8px;">
+        <div class="panel-title" style="font-size:12.5px;">Materials used</div>
+        <button type="button" class="btn btn-sm btn-ghost" id="addMaterialBtn">${ICONS.plus} Add material</button>
+      </div>
+      <div id="materialRows"></div>
+
+      <div class="form-field" style="margin-top:12px;"><span>Other expenses <span style="color:var(--ink-faint); font-weight:400;">(optional — fuel, transport, misc)</span></span><input class="input" type="number" min="0" id="f_otherExpenses" value="0" /></div>
+
+      <div class="panel" style="margin-top:14px; padding:12px; background:var(--accent-soft);">
+        <div class="entity-sub">Today's total expense (auto-calculated)</div>
+        <div id="totalExpensePreview" style="font-size:19px; font-weight:800; margin-top:2px;">${money(0)}</div>
+      </div>
+
+      <div class="form-field" style="margin-top:12px;"><span>Notes</span><textarea class="textarea" id="f_notes" placeholder="Anything else about today"></textarea></div>
+      <div class="form-field"><span>Photos</span><div class="photo-grid" id="logPhotoGrid"></div></div>
+      <input type="file" id="logPhotoInput" accept="image/*" multiple style="display:none" />
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveLogBtn">${ICONS.check} Save Log</button></div>
+  `, true);
+
+  const tempPhotos = [];
+  let materials = [{name:"", cost:0}];
+  let machines = [{name:"", cost:0}];
+
+  function renderRows(containerId, rows, nameAttr, costAttr, delAttr, placeholder){
+    const wrap = document.getElementById(containerId);
+    wrap.innerHTML = rows.map((m,i)=>`
+      <div class="form-row" style="align-items:end; margin-bottom:6px;">
+        <div class="form-field" style="margin:0;"><input class="input" placeholder="${placeholder}" data-${nameAttr}="${i}" value="${escapeHtml(m.name)}" /></div>
+        <div class="form-field" style="margin:0; display:flex; gap:6px;">
+          <input class="input" type="number" min="0" placeholder="Cost" data-${costAttr}="${i}" value="${m.cost||0}" style="flex:1;" />
+          ${rows.length>1?`<button type="button" class="btn btn-ghost btn-sm" data-${delAttr}="${i}" style="padding:0 10px;">${ICONS.x}</button>`:""}
+        </div>
+      </div>`).join("");
+    wrap.querySelectorAll(`[data-${nameAttr}]`).forEach(el=> el.addEventListener("input", ()=>{ rows[+el.dataset[nameAttr]].name = el.value; }));
+    wrap.querySelectorAll(`[data-${costAttr}]`).forEach(el=> el.addEventListener("input", ()=>{ rows[+el.dataset[costAttr]].cost = +el.value||0; updateTotal(); }));
+    wrap.querySelectorAll(`[data-${delAttr}]`).forEach(el=> el.addEventListener("click", ()=>{ rows.splice(+el.dataset[delAttr],1); renderRows(containerId, rows, nameAttr, costAttr, delAttr, placeholder); updateTotal(); }));
+  }
+  function renderMaterials(){ renderRows("materialRows", materials, "mname", "mcost", "mdel", "e.g. Cement (40 bags)"); }
+  function renderMachines(){ renderRows("machineRows", machines, "kname", "kcost", "kdel", "e.g. JCB Excavator"); }
+  document.getElementById("addMaterialBtn").addEventListener("click", ()=>{ materials.push({name:"", cost:0}); renderMaterials(); });
+  document.getElementById("addMachineBtn").addEventListener("click", ()=>{ machines.push({name:"", cost:0}); renderMachines(); });
+  renderMaterials();
+  renderMachines();
+
+  function updateTotal(){
+    const workers = +document.getElementById("f_workers").value||0;
+    const workerWage = +document.getElementById("f_workerWage").value||0;
+    const other = +document.getElementById("f_otherExpenses").value||0;
+    const materialsCost = materials.reduce((s,m)=>s+Number(m.cost||0),0);
+    const machinesCost = machines.reduce((s,m)=>s+Number(m.cost||0),0);
+    const total = (workers*workerWage) + machinesCost + materialsCost + other;
+    document.getElementById("totalExpensePreview").textContent = money(total);
+    return total;
+  }
+  ["f_workers","f_workerWage","f_otherExpenses"].forEach(fid=>{
+    document.getElementById(fid).addEventListener("input", updateTotal);
+  });
+  updateTotal();
+
+  function renderGrid(){
+    const grid = document.getElementById("logPhotoGrid");
+    grid.innerHTML = tempPhotos.map((p,i)=>`
+      <div class="photo-thumb-desc">
+        <div class="photo-thumb"><img src="${p.data}"/><div class="rm" data-rm="${i}">✕</div></div>
+        <input class="input" style="margin-top:6px; font-size:11.5px; padding:6px 8px;" placeholder="Describe this photo (e.g. 'Wall plastering done today')" data-pdesc="${i}" value="${escapeHtml(p.description||"")}" />
+      </div>`).join("") +
+      `<div class="photo-add" id="logPhotoAddBtn">${ICONS.camera}<span>Add</span></div>`;
+    grid.querySelectorAll("[data-rm]").forEach(b=>b.addEventListener("click", ()=>{ tempPhotos.splice(+b.dataset.rm,1); renderGrid(); }));
+    grid.querySelectorAll("[data-pdesc]").forEach(inp=>inp.addEventListener("input", ()=>{ tempPhotos[+inp.dataset.pdesc].description = inp.value; }));
+    document.getElementById("logPhotoAddBtn").addEventListener("click", ()=>document.getElementById("logPhotoInput").click());
+  }
+  renderGrid();
+  document.getElementById("logPhotoInput").addEventListener("change",(e)=>{
+    [...e.target.files].forEach(f=>{ const r=new FileReader(); r.onload=()=>{ tempPhotos.push({data:r.result, description:""}); renderGrid(); }; r.readAsDataURL(f); });
+    e.target.value="";
+  });
+  document.getElementById("saveLogBtn").addEventListener("click", ()=>{
+    const workers = +document.getElementById("f_workers").value||0;
+    const workerWage = +document.getElementById("f_workerWage").value||0;
+    const other = +document.getElementById("f_otherExpenses").value||0;
+    const cleanMaterials = materials.filter(m=>m.name.trim()||m.cost>0);
+    const cleanMachines = machines.filter(m=>m.name.trim()||m.cost>0);
+    const materialsCost = cleanMaterials.reduce((s,m)=>s+Number(m.cost||0),0);
+    const machinesCost = cleanMachines.reduce((s,m)=>s+Number(m.cost||0),0);
+    const totalExpense = (workers*workerWage) + machinesCost + materialsCost + other;
+    const log = {date:document.getElementById("f_date").value||todayStr(), progress:+document.getElementById("f_progress").value||0,
+      workers, workerWage, machines: cleanMachines, machinesCost, materials: cleanMaterials, materialsCost, otherExpenses: other,
+      expenses: totalExpense, notes:document.getElementById("f_notes").value.trim(), photos:tempPhotos.slice()};
+    s.dailyLogs.unshift(log);
+    s.progress = log.progress;
+    s.currentCost = Number(s.currentCost||0) + Number(log.expenses||0);
+    if(log.expenses>0) state.transactions.push({id:uid(), date:log.date, type:"expense", category:"Site Expense", amount: log.expenses, note:`${s.name} — daily log expense`, siteId:s.id});
+    logActivity(`Logged progress for site "${s.name}" (${log.progress}%)`);
+    saveState(); closeModal(); openSiteDetail(id); renderContent(); toast("Daily log saved");
+  });
+}
+
+/* ============== WORKERS ============== */
+function renderWorkers(){
+  return `
+    <div class="page-head">
+      <div><div class="page-title">Workers</div><div class="page-sub">${state.workers.length} workers on record.</div></div>
+      <button class="btn btn-primary" onclick="openAddWorkerModal()">${ICONS.plus} Add Worker</button>
+    </div>
+    ${state.workers.length===0 ? emptyState("workers","No workers yet","Add workers to track attendance and wages.", `<button class="btn btn-primary" onclick="openAddWorkerModal()">${ICONS.plus} Add Worker</button>`) :
+    `<div class="card-grid">${state.workers.map(w=>{
+      const presentToday = (w.attendance||[]).some(a=>a.date===todayStr()&&a.present);
+      return `<div class="entity-card" data-worker-open="${w.id}">
+        <div class="list-avatar" style="width:40px;height:40px;">${ICONS.hardhat}</div>
+        <div><div class="entity-title">${escapeHtml(w.name)}</div><div class="entity-sub">${escapeHtml(w.skill||"General")}</div></div>
+        <div class="card-price-row">
+          <span class="tag ${presentToday?'tag-success':'tag-warn'}">${presentToday?"Present today":"Not marked"}</span>
+          ${Number(w.dailyWage)>0 ? `<span class="entity-sub mono">${money(w.dailyWage)}/day</span>` : `<span class="entity-sub mono">No fixed wage</span>`}
+        </div>
+      </div>`;
+    }).join("")}</div>`}
+  `;
+}
+function openAddWorkerModal(){
+  openModal(`
+    ${modalHeader("Add Worker")}
+    <div class="modal-body">
+      <div class="form-field"><span>Name</span><input class="input" id="f_name" placeholder="Worker name" /></div>
+      <div class="form-row">
+        <div class="form-field"><span>Phone</span><input class="input" id="f_phone" /></div>
+        <div class="form-field"><span>Skill</span><input class="input" id="f_skill" placeholder="e.g. Mason, Electrician" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span>Daily wage (${state.settings.currency}) <span style="color:var(--ink-faint); font-weight:400;">(optional)</span></span><input class="input" type="number" min="0" id="f_wage" value="" placeholder="Leave blank if not applicable" /></div>
+        <div class="form-field"><span>Advance paid <span style="color:var(--ink-faint); font-weight:400;">(optional)</span></span><input class="input" type="number" min="0" id="f_advance" value="0" /></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveWorkerBtn">${ICONS.check} Save Worker</button></div>
+  `);
+  document.getElementById("saveWorkerBtn").addEventListener("click", ()=>{
+    const name = document.getElementById("f_name").value.trim();
+    if(!name){ toast("Please enter a name", false); return; }
+    const w = {id:uid(), name, phone:document.getElementById("f_phone").value.trim(), skill:document.getElementById("f_skill").value.trim(),
+      dailyWage:+document.getElementById("f_wage").value||0, advancePaid:+document.getElementById("f_advance").value||0, attendance:[]};
+    state.workers.push(w); logActivity(`Added worker "${w.name}"`); saveState(); closeModal(); renderContent(); toast("Worker added");
+  });
+}
+function openWorkerDetail(id){
+  const w = state.workers.find(x=>x.id===id); if(!w) return;
+  const presentDays = (w.attendance||[]).filter(a=>a.present).length;
+  const remaining = presentDays*Number(w.dailyWage||0) - Number(w.advancePaid||0);
+  const presentToday = (w.attendance||[]).some(a=>a.date===todayStr()&&a.present);
+  openModal(`
+    ${modalHeader(w.name)}
+    <div class="modal-body">
+      <div class="form-row">
+        <div><div class="entity-sub">Phone</div><div style="font-weight:700;">${escapeHtml(w.phone||"—")}</div></div>
+        <div><div class="entity-sub">Skill</div><div style="font-weight:700;">${escapeHtml(w.skill||"—")}</div></div>
+      </div>
+      <div class="form-row3" style="margin-top:12px;">
+        ${Number(w.dailyWage)>0 ? `
+        <div class="panel" style="padding:10px;"><div class="entity-sub">Daily Wage</div><div style="font-weight:800;">${money(w.dailyWage)}</div></div>
+        <div class="panel" style="padding:10px;"><div class="entity-sub">Advance Paid</div><div style="font-weight:800;">${money(w.advancePaid)}</div></div>
+        <div class="panel" style="padding:10px;"><div class="entity-sub">Remaining Salary</div><div style="font-weight:800; color:${remaining>=0?'var(--success)':'var(--danger)'};">${money(remaining)}</div></div>
+        ` : `<div class="panel" style="padding:10px; grid-column:1/-1;"><div class="entity-sub">Wage</div><div style="font-weight:700; color:var(--ink-muted);">No fixed daily wage set for this worker</div></div>`}
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn ${presentToday?'btn-ghost':'btn-primary'} btn-block" id="markAttBtn">${ICONS.check} ${presentToday?"Marked Present Today":"Mark Present Today"}</button>
+      </div>
+      <div style="margin-top:14px;"><div class="entity-sub">Attendance history (${presentDays} days present)</div>
+        <div style="max-height:150px; overflow-y:auto; margin-top:6px;">
+        ${(w.attendance||[]).slice(0,15).map(a=>`<div class="list-row"><div style="flex:1; font-size:12.5px;">${fmtDate(a.date)}</div><span class="tag ${a.present?'tag-success':'tag-danger'}">${a.present?"Present":"Absent"}</span></div>`).join("") || `<div class="entity-sub">No attendance marked yet.</div>`}
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" id="delWorkerBtn">${ICONS.trash} Delete</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="editWorkerBtn">${ICONS.edit} Edit</button>
+    </div>
+  `);
+  document.getElementById("markAttBtn").addEventListener("click", ()=>{
+    w.attendance = w.attendance||[];
+    const existing = w.attendance.find(a=>a.date===todayStr());
+    if(existing) existing.present = true; else w.attendance.unshift({date:todayStr(), present:true});
+    logActivity(`Marked ${w.name} present today`); saveState(); openWorkerDetail(id); renderContent(); toast("Attendance marked");
+  });
+  document.getElementById("delWorkerBtn").addEventListener("click", ()=>{
+    confirmDelete(`This will permanently remove worker "${w.name}".`, ()=>{
+      state.workers = state.workers.filter(x=>x.id!==id); logActivity(`Deleted worker "${w.name}"`); saveState(); renderContent(); toast("Worker deleted");
+    });
+  });
+  document.getElementById("editWorkerBtn").addEventListener("click", ()=>{
+    openModal(`
+      ${modalHeader("Edit Worker")}
+      <div class="modal-body">
+        <div class="form-field"><span>Name</span><input class="input" id="f_name" value="${escapeHtml(w.name)}" /></div>
+        <div class="form-row">
+          <div class="form-field"><span>Phone</span><input class="input" id="f_phone" value="${escapeHtml(w.phone||"")}" /></div>
+          <div class="form-field"><span>Skill</span><input class="input" id="f_skill" value="${escapeHtml(w.skill||"")}" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><span>Daily wage</span><input class="input" type="number" id="f_wage" value="${w.dailyWage}" /></div>
+          <div class="form-field"><span>Advance paid</span><input class="input" type="number" id="f_advance" value="${w.advancePaid}" /></div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveBtn">${ICONS.check} Save Changes</button></div>
+    `);
+    document.getElementById("saveBtn").addEventListener("click", ()=>{
+      w.name=document.getElementById("f_name").value.trim()||w.name; w.phone=document.getElementById("f_phone").value.trim();
+      w.skill=document.getElementById("f_skill").value.trim(); w.dailyWage=+document.getElementById("f_wage").value||0;
+      w.advancePaid=+document.getElementById("f_advance").value||0;
+      saveState(); closeModal(); openWorkerDetail(id); toast("Worker updated");
+    });
+  });
+}
+
+/* ============== FINANCE ============== */
+function renderFinance(){
+  const t = computeTotals();
+  const sorted = [...state.transactions].sort((a,b)=> b.date.localeCompare(a.date));
+  const now = new Date(); const monthKey = now.toISOString().slice(0,7);
+  const monthlyProfit = state.transactions.filter(tr=>tr.date.startsWith(monthKey)).reduce((s,tr)=> s + (tr.type==="revenue"?Number(tr.amount): -Number(tr.amount)),0);
+  const todaysProfit = state.transactions.filter(tr=>tr.date===todayStr()).reduce((s,tr)=> s + (tr.type==="revenue"?Number(tr.amount): -Number(tr.amount)),0);
+  const paidTotal = state.customers.reduce((s,c)=>s+Number(c.paid||0),0);
+  return `
+    <div class="page-head">
+      <div><div class="page-title">Finance</div><div class="page-sub">Automatic revenue, expense and profit tracking.</div></div>
+      <button class="btn btn-primary" onclick="openAddTransactionModal()">${ICONS.plus} Add Transaction</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-val" style="margin-top:8px;">${money(t.revenue)}</div></div>
+      <div class="stat-card"><div class="stat-label">Expenses</div><div class="stat-val" style="margin-top:8px;">${money(t.expenses)}</div></div>
+      <div class="stat-card"><div class="stat-label">Today's Profit</div><div class="stat-val" style="margin-top:8px; color:${todaysProfit>=0?'var(--success)':'var(--danger)'};">${money(todaysProfit)}</div></div>
+      <div class="stat-card"><div class="stat-label">Monthly Profit</div><div class="stat-val" style="margin-top:8px; color:${monthlyProfit>=0?'var(--success)':'var(--danger)'};">${money(monthlyProfit)}</div></div>
+      <div class="stat-card"><div class="stat-label">Pending Payments</div><div class="stat-val" style="margin-top:8px;">${money(t.pending)}</div></div>
+      <div class="stat-card"><div class="stat-label">Paid Payments</div><div class="stat-val" style="margin-top:8px;">${money(paidTotal)}</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">${ICONS.finance} Transactions</div></div>
+      ${sorted.length===0 ? emptyState("finance","No transactions yet","Sales and site expenses appear here automatically, or add one manually.") :
+      `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Note</th><th style="text-align:right;">Amount</th><th></th></tr></thead><tbody>
+        ${sorted.slice(0,60).map(tr=>`<tr>
+          <td>${fmtDate(tr.date)}</td>
+          <td><span class="tag ${tr.type==='revenue'?'tag-success':'tag-danger'}">${tr.type==='revenue'?'Revenue':'Expense'}</span></td>
+          <td>${escapeHtml(tr.category)}</td>
+          <td style="color:var(--ink-muted);">${escapeHtml(tr.note||"")}</td>
+          <td style="text-align:right; font-weight:700;" class="mono">${money(tr.amount)}</td>
+          <td><button class="btn btn-icon btn-ghost" data-del-tx="${tr.id}">${ICONS.trash}</button></td>
+        </tr>`).join("")}
+      </tbody></table>`}
+    </div>
+  `;
+}
+function openAddTransactionModal(){
+  openModal(`
+    ${modalHeader("Add Transaction")}
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-field"><span>Type</span><select class="select" id="f_type"><option value="revenue">Revenue</option><option value="expense">Expense</option></select></div>
+        <div class="form-field"><span>Date</span><input class="input" type="date" id="f_date" value="${todayStr()}" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><span>Category</span><input class="input" id="f_cat" placeholder="e.g. Rent, Fuel, Misc Sale" /></div>
+        <div class="form-field"><span>Amount (${state.settings.currency})</span><input class="input" type="number" min="0" id="f_amt" value="0" /></div>
+      </div>
+      <div class="form-field"><span>Note</span><input class="input" id="f_note" placeholder="Optional note" /></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="saveTxBtn">${ICONS.check} Save Transaction</button></div>
+  `);
+  document.getElementById("saveTxBtn").addEventListener("click", ()=>{
+    const amt = +document.getElementById("f_amt").value||0;
+    if(amt<=0){ toast("Enter a valid amount", false); return; }
+    const tr = {id:uid(), date:document.getElementById("f_date").value||todayStr(), type:document.getElementById("f_type").value,
+      category:document.getElementById("f_cat").value.trim()||"General", amount:amt, note:document.getElementById("f_note").value.trim()};
+    state.transactions.push(tr); logActivity(`Added ${tr.type} of ${money(amt)}`); saveState(); closeModal(); renderContent(); toast("Transaction saved");
+  });
+}
+
+/* ============== ANALYTICS ============== */
+function renderAnalytics(){
+  return `
+    <div class="page-head"><div><div class="page-title">Analytics</div><div class="page-sub">Trends across revenue, expenses, inventory and top performers.</div></div></div>
+    <div class="dash-grid">
+      <div class="panel"><div class="panel-title" style="margin-bottom:10px;">Monthly Revenue vs Expenses</div>
+        <div class="chart-wrap"><canvas class="chart-canvas" id="chartMonthly" height="220"></canvas></div>
+        <div class="legend-row"><span class="legend-dot" style="background:var(--success)"></span>Revenue <span class="legend-dot" style="background:var(--danger)"></span>Expenses</div>
+      </div>
+      <div class="panel"><div class="panel-title" style="margin-bottom:10px;">Inventory Value by Category</div>
+        <div class="chart-wrap"><canvas class="chart-canvas" id="chartInventory" height="220"></canvas></div>
+      </div>
+    </div>
+    <div class="dash-grid" style="margin-top:16px;">
+      <div class="panel"><div class="panel-title" style="margin-bottom:6px;">Best Selling Products</div>${renderRankList(topProducts())}</div>
+      <div class="panel"><div class="panel-title" style="margin-bottom:6px;">Top Customers</div>${renderRankList(topCustomers())}</div>
+    </div>
+    <div class="panel" style="margin-top:16px;"><div class="panel-title" style="margin-bottom:6px;">Top Suppliers (by pending payment)</div>${renderRankList(topSuppliers())}</div>
+  `;
+}
+function renderRankList(items){
+  if(items.length===0) return `<div class="entity-sub" style="padding:10px 0;">Not enough data yet.</div>`;
+  const max = Math.max(...items.map(i=>i.value),1);
+  return items.map((it,i)=>`
+    <div class="rank-row">
+      <div class="rank-num">${i+1}</div>
+      <div style="flex:0 0 120px; font-size:12.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(it.label)}</div>
+      <div class="rank-bar-track"><div class="rank-bar-fill" style="width:${(it.value/max*100).toFixed(0)}%"></div></div>
+      <div style="font-size:11.5px; font-weight:700; width:80px; text-align:right;" class="mono">${it.display}</div>
+    </div>`).join("");
+}
+function topProducts(){
+  const map = {};
+  state.transactions.filter(t=>t.type==="revenue" && t.category==="Sale").forEach(t=>{
+    const m = t.note && t.note.match(/— (.+?) ×/); const name = m? m[1] : "Product";
+    map[name] = (map[name]||0)+Number(t.amount);
+  });
+  return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>({label:k, value:v, display:money(v)}));
+}
+function topCustomers(){
+  return [...state.customers].sort((a,b)=> (Number(b.paid||0)+Number(b.pending||0)) - (Number(a.paid||0)+Number(a.pending||0)))
+    .slice(0,6).map(c=>({label:c.name, value:Number(c.paid||0)+Number(c.pending||0), display:money(Number(c.paid||0)+Number(c.pending||0))}));
+}
+function topSuppliers(){
+  return [...state.suppliers].sort((a,b)=>Number(b.pending||0)-Number(a.pending||0)).slice(0,6).map(s=>({label:s.company, value:Number(s.pending||0), display:money(s.pending)}));
+}
+function drawGroupedBarChart(canvas, labels, seriesA, seriesB, colorA, colorB){
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio||1;
+  const w = canvas.clientWidth||600, h = 220;
+  canvas.width = w*dpr; canvas.height = h*dpr; ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+  const max = Math.max(...seriesA, ...seriesB, 1);
+  const padL = 8, padB = 24, padT = 10, plotW = w-padL-8, plotH = h-padB-padT;
+  const groupW = plotW/labels.length;
+  const inkFaint = getComputedStyle(document.documentElement).getPropertyValue('--ink-faint').trim() || "#888";
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border-solid').trim();
+  ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.stroke();
+  labels.forEach((lab,i)=>{
+    const gx = padL + i*groupW;
+    const barW = groupW*0.28;
+    const av = seriesA[i]/max*plotH, bv = seriesB[i]/max*plotH;
+    ctx.fillStyle = colorA;
+    ctx.fillRect(gx + groupW*0.18, padT+plotH-av, barW, av);
+    ctx.fillStyle = colorB;
+    ctx.fillRect(gx + groupW*0.54, padT+plotH-bv, barW, bv);
+    ctx.fillStyle = inkFaint; ctx.font = "10px Inter, sans-serif"; ctx.textAlign="center";
+    ctx.fillText(lab, gx+groupW/2, h-6);
+  });
+}
+function drawDonut(canvas, labels, values, colors){
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio||1;
+  const w = canvas.clientWidth||600, h = 220;
+  canvas.width = w*dpr; canvas.height = h*dpr; ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+  const total = values.reduce((a,b)=>a+b,0);
+  const cx = 70, cy = h/2, r = 62, rin = 38;
+  if(total<=0){
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ink-faint').trim();
+    ctx.font = "12px Inter, sans-serif"; ctx.textAlign="center"; ctx.fillText("No data yet", w/2, h/2);
+    return;
+  }
+  let start = -Math.PI/2;
+  values.forEach((v,i)=>{
+    const angle = v/total*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+angle); ctx.closePath();
+    ctx.fillStyle = colors[i%colors.length]; ctx.fill();
+    start += angle;
+  });
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.beginPath(); ctx.arc(cx,cy,rin,0,Math.PI*2); ctx.fill();
+  ctx.globalCompositeOperation = "source-over";
+  let ly = 26;
+  labels.forEach((lab,i)=>{
+    ctx.fillStyle = colors[i%colors.length]; ctx.fillRect(150, ly-8, 9, 9);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim();
+    ctx.font="11px Inter, sans-serif"; ctx.textAlign="left"; ctx.fillText(lab, 164, ly);
+    ly += 18;
+  });
+}
+function renderAnalyticsCharts(){
+  const monthlyCanvas = document.getElementById("chartMonthly");
+  if(monthlyCanvas){
+    const months = [];
+    for(let i=5;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); months.push(d.toISOString().slice(0,7)); }
+    const rev = months.map(m=> state.transactions.filter(t=>t.type==="revenue"&&t.date.startsWith(m)).reduce((s,t)=>s+Number(t.amount),0));
+    const exp = months.map(m=> state.transactions.filter(t=>t.type==="expense"&&t.date.startsWith(m)).reduce((s,t)=>s+Number(t.amount),0));
+    const labels = months.map(m=> new Date(m+"-01").toLocaleDateString(undefined,{month:"short"}));
+    const cs = getComputedStyle(document.documentElement);
+    drawGroupedBarChart(monthlyCanvas, labels, rev, exp, cs.getPropertyValue('--success').trim(), cs.getPropertyValue('--danger').trim());
+  }
+  const invCanvas = document.getElementById("chartInventory");
+  if(invCanvas){
+    const cats = Object.keys(state.categories);
+    const values = cats.map(c=> state.products.filter(p=>p.category===c).reduce((s,p)=>s+Number(p.stock)*Number(p.sellingPrice||0),0));
+    const palette = ["#ef7d1a","#4fb56a","#4f9fd6","#e0a72b","#e5595a","#7d8fce"];
+    drawDonut(invCanvas, cats, values, palette);
+  }
+}
+
+/* ============== REPORTS ============== */
+function renderReports(){
+  const t = computeTotals();
+  return `
+    <div class="page-head">
+      <div><div class="page-title">Reports</div><div class="page-sub">A snapshot summary you can print or export.</div></div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost" onclick="window.print()">${ICONS.print} Print</button>
+        <button class="btn btn-primary" onclick="exportBackup()">${ICONS.download} Export Data</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title" style="margin-bottom:12px;">Business Summary — ${new Date().toLocaleDateString(undefined,{day:"2-digit",month:"long",year:"numeric"})}</div>
+      <table class="tbl">
+        <tbody>
+          <tr><td>Total Revenue</td><td style="text-align:right; font-weight:700;">${money(t.revenue)}</td></tr>
+          <tr><td>Total Expenses</td><td style="text-align:right; font-weight:700;">${money(t.expenses)}</td></tr>
+          <tr><td>Estimated Profit</td><td style="text-align:right; font-weight:700;">${money(t.profit)}</td></tr>
+          <tr><td>Inventory Value</td><td style="text-align:right; font-weight:700;">${money(t.inventoryValue)}</td></tr>
+          <tr><td>Total Customers</td><td style="text-align:right; font-weight:700;">${state.customers.length}</td></tr>
+          <tr><td>Total Suppliers</td><td style="text-align:right; font-weight:700;">${state.suppliers.length}</td></tr>
+          <tr><td>Active Construction Sites</td><td style="text-align:right; font-weight:700;">${t.activeSites}</td></tr>
+          <tr><td>Total Workers</td><td style="text-align:right; font-weight:700;">${state.workers.length}</td></tr>
+          <tr><td>Low Stock Items</td><td style="text-align:right; font-weight:700;">${t.lowStock.length}</td></tr>
+          <tr><td>Pending Payments (Customers)</td><td style="text-align:right; font-weight:700;">${money(t.pending)}</td></tr>
+          <tr><td>Pending Payments (Suppliers)</td><td style="text-align:right; font-weight:700;">${money(state.suppliers.reduce((s,x)=>s+Number(x.pending||0),0))}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+/* ============== SETTINGS ============== */
+function renderSettings(){
+  return `
+    <div class="page-head"><div><div class="page-title">Settings</div><div class="page-sub">Manage your shop identity, theme, currency and data.</div></div></div>
+    <div class="dash-grid">
+      <div class="panel">
+        <div class="panel-title" style="margin-bottom:12px;">Business Identity</div>
+        <div class="form-field"><span>Owner name</span><input class="input" id="s_owner" value="${escapeHtml(state.settings.ownerName)}" /></div>
+        <div class="form-field"><span>Shop name</span><input class="input" id="s_shop" value="${escapeHtml(state.settings.shopName)}" /></div>
+        <div class="form-field"><span>Currency symbol</span><input class="input" id="s_currency" value="${escapeHtml(state.settings.currency)}" style="max-width:120px;" /></div>
+        <button class="btn btn-primary" id="saveSettingsBtn">${ICONS.check} Save Changes</button>
+      </div>
+      <div class="panel">
+        <div class="panel-title" style="margin-bottom:4px;">Theme</div>
+        <p style="font-size:12px; color:var(--ink-muted); margin:0 0 12px;">Tap any theme below to apply it instantly across the whole app — it also saves for next time you open SiteLedger.</p>
+        <div class="settings-grid">
+          ${THEMES.map(t=>`<div class="theme-tile ${state.settings.theme===t.id?'active':''}" data-theme-id="${t.id}">
+            <div class="theme-tile-swatch" style="background:${t.sw}"></div>${t.label}
+          </div>`).join("")}
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-title" style="margin-bottom:10px;">Backup &amp; Restore</div>
+      <p style="font-size:12.5px; color:var(--ink-muted); margin:0 0 12px;">All your data is stored locally in this browser. Export a backup regularly, or restore from a previous export.</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-ghost" onclick="exportBackup()">${ICONS.download} Export Backup (JSON)</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('restoreFileInput').click()">${ICONS.file} Restore from File</button>
+        <button class="btn btn-danger" id="resetAllBtn">${ICONS.trash} Reset All Data</button>
+      </div>
+    </div>
+  `;
+}
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `siteledger-backup-${todayStr()}.json`;
+  a.click();
+  toast("Backup exported");
+}
+function handleRestoreFile(e){
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const parsed = JSON.parse(r.result);
+      state = Object.assign(structuredCloneSafe(DEFAULT_STATE), parsed, {settings: Object.assign({}, DEFAULT_STATE.settings, parsed.settings||{})});
+      saveState();
+      document.documentElement.setAttribute("data-theme", state.settings.theme);
+      renderOwnerShop(); renderLogoBadge(); renderNav(); renderContent();
+      toast("Backup restored");
+    }catch(err){ toast("Invalid backup file", false); }
+  };
+  r.readAsText(file);
+  e.target.value = "";
+}
+
+/* ============== GLOBAL SEARCH ============== */
+function runSearch(q){
+  const box = document.getElementById("searchResults");
+  if(!q){ hideSearchResults(); return; }
+  const ql = q.toLowerCase();
+  const results = {
+    Products: state.products.filter(p=>p.name.toLowerCase().includes(ql)).slice(0,5).map(p=>({label:p.name, sub:p.category, open:()=>openProductDetail(p.id)})),
+    Customers: state.customers.filter(c=>c.name.toLowerCase().includes(ql)||(c.phone||"").includes(ql)).slice(0,5).map(c=>({label:c.name, sub:c.phone||"", open:()=>openCustomerDetail(c.id)})),
+    Suppliers: state.suppliers.filter(s=>s.company.toLowerCase().includes(ql)).slice(0,5).map(s=>({label:s.company, sub:s.contact||"", open:()=>openSupplierDetail(s.id)})),
+    "Construction Sites": state.sites.filter(s=>s.name.toLowerCase().includes(ql)).slice(0,5).map(s=>({label:s.name, sub:s.location||"", open:()=>openSiteDetail(s.id)})),
+    Workers: state.workers.filter(w=>w.name.toLowerCase().includes(ql)).slice(0,5).map(w=>({label:w.name, sub:w.skill||"", open:()=>openWorkerDetail(w.id)})),
+  };
+  const groups = Object.entries(results).filter(([,v])=>v.length>0);
+  if(groups.length===0){ box.innerHTML = `<div class="sr-empty">No results for "${escapeHtml(q)}"</div>`; box.classList.add("show"); return; }
+  box.innerHTML = groups.map(([label,items])=>`
+    <div class="sr-group-label">${label}</div>
+    ${items.map((it,i)=>`<div class="sr-item" data-sr="${label}:${i}"><div class="list-avatar" style="width:26px;height:26px;font-size:10px;">${escapeHtml(it.label).slice(0,2).toUpperCase()}</div><div><div style="font-weight:600;">${escapeHtml(it.label)}</div><div style="font-size:11px; color:var(--ink-muted);">${escapeHtml(it.sub)}</div></div></div>`).join("")}
+  `).join("");
+  box.classList.add("show");
+  box.querySelectorAll("[data-sr]").forEach(el=>{
+    const [label,i] = el.dataset.sr.split(":");
+    el.addEventListener("click", ()=>{ results[label][+i].open(); hideSearchResults(); });
+  });
+}
+function hideSearchResults(){ document.getElementById("searchResults").classList.remove("show"); }
+
+/* ============== BIND PAGE-LEVEL EVENTS (per render) ============== */
+function bindPageEvents(){
+  document.querySelectorAll("[data-product-open]").forEach(el=> el.addEventListener("click", ()=>openProductDetail(el.dataset.productOpen)));
+  document.querySelectorAll("[data-customer-open]").forEach(el=> el.addEventListener("click", ()=>openCustomerDetail(el.dataset.customerOpen)));
+  document.querySelectorAll("[data-supplier-open]").forEach(el=> el.addEventListener("click", ()=>openSupplierDetail(el.dataset.supplierOpen)));
+  document.querySelectorAll("[data-site-open]").forEach(el=> el.addEventListener("click", ()=>openSiteDetail(el.dataset.siteOpen)));
+  document.querySelectorAll("[data-worker-open]").forEach(el=> el.addEventListener("click", ()=>openWorkerDetail(el.dataset.workerOpen)));
+  document.querySelectorAll("[data-cat]").forEach(el=> el.addEventListener("click", ()=>{ invCategoryFilter = el.dataset.cat; renderContent(); }));
+  document.querySelectorAll("[data-invcat]").forEach(el=> el.addEventListener("click", ()=>{ invoiceFilter = el.dataset.invcat; renderContent(); }));
+  document.querySelectorAll("[data-invoice-open]").forEach(el=> el.addEventListener("click", ()=>{
+    const inv = state.invoices.find(x=>x.id===el.dataset.invoiceOpen); if(inv) openInvoicePreview(inv);
+  }));
+  document.querySelectorAll("[data-stock]").forEach(el=> el.addEventListener("click", ()=>{ stockFilter = el.dataset.stock; renderContent(); }));
+  document.querySelectorAll("[data-del-tx]").forEach(el=> el.addEventListener("click", ()=>{
+    const id = el.dataset.delTx; const tr = state.transactions.find(x=>x.id===id);
+    confirmDelete(`Remove this ${tr.type} of ${money(tr.amount)}?`, ()=>{ state.transactions = state.transactions.filter(x=>x.id!==id); saveState(); renderContent(); toast("Transaction removed"); });
+  }));
+  document.querySelectorAll(".theme-tile").forEach(el=> el.addEventListener("click", ()=> setTheme(el.dataset.themeId)));
+  const saveSet = document.getElementById("saveSettingsBtn");
+  if(saveSet) saveSet.addEventListener("click", ()=>{
+    state.settings.ownerName = document.getElementById("s_owner").value.trim()||state.settings.ownerName;
+    state.settings.shopName = document.getElementById("s_shop").value.trim()||state.settings.shopName;
+    state.settings.currency = document.getElementById("s_currency").value.trim()||state.settings.currency;
+    saveState(); renderOwnerShop(); renderContent(); toast("Settings saved");
+  });
+  const resetBtn = document.getElementById("resetAllBtn");
+  if(resetBtn) resetBtn.addEventListener("click", ()=>{
+    confirmDelete("This will permanently erase ALL data — products, customers, suppliers, sites, workers and transactions.", ()=>{
+      const keepSettings = {...state.settings};
+      state = structuredCloneSafe(DEFAULT_STATE); state.settings = keepSettings;
+      saveState(); renderContent(); toast("All data reset");
+    });
+  });
+  if(tab==="analytics") renderAnalyticsCharts();
+}
+
+window.addEventListener("resize", ()=>{ if(tab==="analytics") renderAnalyticsCharts(); });
+window.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
